@@ -1,7 +1,10 @@
-node_modules/
-build/
-.DS_Store
+# Specific directories to ignore
 ead/
 OPT/
 문서/
 
+# Common files to ignore
+node_modules/
+build/
+.DS_Store
+.env
