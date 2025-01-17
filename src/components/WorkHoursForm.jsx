@@ -188,10 +188,10 @@ const WorkHoursForm = () => {
           ))}
         </div>
 
-        <div className="signature-section">
+        <div className="input-group">
           <label>Supervisor Signature</label>
           <div className="signature-container">
-            <div className="signature-pad-wrapper">
+            <div className="signature-pad">
               <SignaturePad
                 ref={signaturePadRef}
                 options={{
@@ -203,27 +203,17 @@ const WorkHoursForm = () => {
               />
             </div>
             <div className="signature-buttons">
-              <button 
-                type="button" 
-                onClick={clearSignature} 
-                className="clear-signature"
-              >
-                Clear Signature
-              </button>
-              <button 
-                type="button" 
-                onClick={saveSignature} 
-                className="save-signature"
-              >
-                Save Signature
-              </button>
+              <button className="signature-button clear-button" onClick={clearSignature}>Clear Signature</button>
+              <button className="signature-button save-button" onClick={saveSignature}>Save Signature</button>
             </div>
           </div>
         </div>
 
-        <button type="submit" className="submit-button">
-          Submit
-        </button>
+        <div className="submit-container">
+          <button type="submit" className="submit-button">
+            Submit
+          </button>
+        </div>
       </form>
     </div>
   );

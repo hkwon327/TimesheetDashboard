@@ -15,17 +15,23 @@ h1 {
   text-align: center;
   color: #333;
   margin-bottom: 0.5rem;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 1.8rem;
+  line-height: 1.2;
 }
 
 .form-subtitle {
   text-align: center;
   color: #666;
   margin-bottom: 2rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .input-group {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 label {
@@ -48,6 +54,7 @@ select,
   box-sizing: border-box;
   background-color: #ffffff;
   font-family: Georgia, 'Times New Roman', Times, serif;
+  max-width: 100%;
 }
 
 .schedule-grid {
@@ -87,94 +94,204 @@ select,
 
 .signature-container {
   border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 1rem;
-  background: #fff;
+  border-radius: 0;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 750px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.signature-pad-wrapper {
+.signature-pad {
+  border: 1px solid #ddd;
+  border-radius: 0;
   width: 100%;
   height: 200px;
-  position: relative;
-  border: 1px solid #eee;
-}
-
-.signature-pad-wrapper canvas {
-  width: 100% !important;
-  height: 100% !important;
-  touch-action: none;
+  background-color: #ffffff;
+  margin-bottom: 1.5rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .signature-buttons {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-top: 1rem;
 }
 
-.clear-signature,
-.save-signature {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
+.signature-button, .submit-button {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 18px;
+  height: 52px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+}
+
+.clear-button {
   flex: 1;
+  background-color: #ffffff;
+  border: 2px solid #F4A460;
+  color: #000000;
 }
 
-.clear-signature:hover,
-.save-signature:hover {
-  background: #f8f9fa;
+.clear-button:hover {
+  background-color: #FFF5E6;
 }
 
-.save-signature {
-  background: #000;
-  color: #fff;
-  border-color: #000;
+.save-button {
+  flex: 1;
+  background-color: #000000;
+  border: none;
+  color: #ffffff;
 }
 
-.save-signature:hover {
-  background: #333;
+.save-button:hover {
+  background-color: #333333;
+}
+
+.submit-container {
+  width: 50%;
+  margin: 2rem auto 3rem;
 }
 
 .submit-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 200px;
-  margin: 0 auto;
-  padding: 0.75rem 1.5rem;
-  background-color: #000;
-  color: #fff;
+  width: 100%;
+  height: 52px;
+  background-color: #000000;
+  color: #ffffff;
   border: none;
-  border-radius: 4px;
+  letter-spacing: 0.5px;
+  font-size: 18px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .submit-button:hover {
-  background-color: #333;
-}
-
-.submit-button::before {
-  content: "✈";
-  margin-right: 0.5rem;
+  background-color: #333333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 768px) {
   .signature-pad-wrapper {
     height: 150px;
   }
-  
+
   .signature-buttons {
     flex-direction: column;
   }
-  
+
   .clear-signature,
   .save-signature {
     width: 100%;
     margin: 0;
   }
-} 
+
+  .signature-container {
+    padding: 1rem;
+  }
+  
+  .signature-pad {
+    height: 180px;
+  }
+  
+  .signature-buttons {
+    gap: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .form-subtitle {
+    font-size: 0.9rem;
+  }
+
+  /* Maintain consistent input sizes on mobile */
+  input[type="text"],
+  input[type="date"],
+  input[type="week"],
+  select,
+  .service-week-display input {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+
+  .submit-container {
+    width: 97%;
+  }
+}
+
+/* Regular input placeholder styling */
+input::placeholder {
+  color: #999999;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+/* Date input styling updates */
+input[type="date"] {
+  position: relative;
+  color: #333;
+  text-align: left !important;
+  min-width: 100%;
+  max-width: 100%;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start !important;
+}
+
+/* Date field wrapper alignment */
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start !important;
+  width: 100%;
+  padding: 0;
+  margin-left: 0;
+}
+
+/* Individual date fields alignment */
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  text-align: left !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Calendar icon positioning */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0.75rem;
+  margin: 0;
+}
+
+/* Selected date styling */
+input[type="date"]:valid {
+  text-align: left;
+  padding-left: 0.75rem;
+}
+
+/* Service week display container */
+.service-week-display {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Service week date range alignment */
+.date-range {
+  text-align: left;
+  padding-left: 0;
+}
