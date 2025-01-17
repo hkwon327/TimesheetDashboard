@@ -34,12 +34,20 @@ label {
   color: #333;
 }
 
-input, select {
+input[type="text"],
+input[type="date"],
+input[type="week"],
+select,
+.service-week-display input {
   width: 100%;
+  height: 48px;
   padding: 0.75rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .schedule-grid {
