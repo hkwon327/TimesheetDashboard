@@ -23,10 +23,10 @@ const WorkHoursForm = () => {
   });
 
   const workingTimeOptions = [
-    '9:00 AM - 5:00 PM',
-    '8:00 AM - 4:00 PM',
-    '10:00 AM - 6:00 PM',
+    'Day Shift: 8:00 AM - 5:00 PM',
+    'Night Shift: 4:00 PM - 12:00 AM',
     'Off',
+    'Type in'
   ];
 
   const locationOptions = [
