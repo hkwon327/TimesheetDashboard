@@ -3,7 +3,7 @@ import SignaturePad from 'react-signature-pad-wrapper';
 import './WorkHoursForm.css';
 
 const WorkHoursForm = () => {
-  const signaturePadRef = useRef(null);
+  const signatureRef = useRef();
   const [formData, setFormData] = useState({
     employeeName: '',
     requestDate: '',
@@ -78,11 +78,14 @@ const WorkHoursForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.supervisorSignature) {
+    
+    // Signature validation ONLY for submit
+    const isSignatureEmpty = signatureRef.current?.isEmpty();
+    if (isSignatureEmpty) {
       alert('Please provide supervisor signature before submitting');
       return;
     }
-    
+
     try {
       // Add your API submission logic here
       console.log('Form submitted:', formData);
@@ -91,17 +94,19 @@ const WorkHoursForm = () => {
     }
   };
 
-  const clearSignature = () => {
-    if (signaturePadRef.current) {
-      signaturePadRef.current.clear();
-      setFormData(prev => ({ ...prev, supervisorSignature: null }));
+  // Completely separate clear function
+  const handleClearSignature = (e) => {
+    e.preventDefault(); // Prevent any form submission
+    if (signatureRef.current) {
+      signatureRef.current.clear();
     }
   };
 
-  const saveSignature = () => {
-    if (signaturePadRef.current) {
-      const signatureData = signaturePadRef.current.toDataURL();
-      setFormData(prev => ({ ...prev, supervisorSignature: signatureData }));
+  // Separate save function
+  const handleSaveSignature = (e) => {
+    e.preventDefault(); // Prevent any form submission
+    if (signatureRef.current) {
+      console.log('Signature saved');
     }
   };
 
@@ -193,18 +198,27 @@ const WorkHoursForm = () => {
           <div className="signature-container">
             <div className="signature-pad">
               <SignaturePad
-                ref={signaturePadRef}
-                options={{
-                  minWidth: 1,
-                  maxWidth: 2,
-                  penColor: 'black',
-                  backgroundColor: 'rgb(255, 255, 255)',
+                ref={signatureRef}
+                canvasProps={{
+                  className: "signature-canvas"
                 }}
               />
             </div>
             <div className="signature-buttons">
-              <button className="signature-button clear-button" onClick={clearSignature}>Clear Signature</button>
-              <button className="signature-button save-button" onClick={saveSignature}>Save Signature</button>
+              <button 
+                type="button"
+                className="signature-button clear-button" 
+                onClick={handleClearSignature}
+              >
+                Clear Signature
+              </button>
+              <button 
+                type="button"
+                className="signature-button save-button"
+                onClick={handleSaveSignature}
+              >
+                Save Signature
+              </button>
             </div>
           </div>
         </div>

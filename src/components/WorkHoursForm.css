@@ -95,46 +95,56 @@ select,
 .signature-container {
   border: 1px solid #ddd;
   border-radius: 0;
-  padding: 2rem;
+  padding: 0.8rem;
   margin-bottom: 2rem;
   width: 100%;
-  max-width: 750px;
+  height: 340px;
+  max-width: 800px;
   background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-left: auto;
   margin-right: auto;
+  box-sizing: border-box;
 }
 
 .signature-pad {
   border: 1px solid #ddd;
   border-radius: 0;
   width: 100%;
-  height: 200px;
+  height: 250px;
   background-color: #ffffff;
-  margin-bottom: 1.5rem;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.signature-pad canvas {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .signature-buttons {
   display: flex;
-  gap: 1.5rem;
-  margin-top: 1rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  justify-content: center;
 }
 
-.signature-button, .submit-button {
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  font-size: 18px;
-  height: 52px;
-  border-radius: 8px;
+.signature-button {
+  padding: 8px 24px;
+  font-size: 16px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 150px;
 }
 
 .clear-button {
-  flex: 1;
-  background-color: #ffffff;
-  border: 2px solid #F4A460;
-  color: #000000;
+  background-color: transparent;
+  border: 1px solid #999999;
+  color: #999999;
 }
 
 .clear-button:hover {
@@ -142,7 +152,6 @@ select,
 }
 
 .save-button {
-  flex: 1;
   background-color: #000000;
   border: none;
   color: #ffffff;
@@ -154,7 +163,7 @@ select,
 
 .submit-container {
   width: 50%;
-  margin: 2rem auto 3rem;
+  margin: 4rem auto 4rem;
 }
 
 .submit-button {
