@@ -1,3 +1,7 @@
+/* -------------------------------
+   PAGE & FORM CONTAINER STYLES
+--------------------------------*/
+
 body {
   background-color: #f5f5f5;
 }
@@ -40,8 +44,11 @@ label {
   color: #333;
 }
 
+/* -------------------------------
+   TEXT / SELECT / WEEK INPUTS
+--------------------------------*/
+
 input[type="text"],
-input[type="date"],
 input[type="week"],
 select,
 .service-week-display input {
@@ -57,36 +64,70 @@ select,
   max-width: 100%;
 }
 
-.schedule-grid {
-  margin-bottom: 2rem;
+input::placeholder {
+  color: #999999;
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
-.grid-header {
-  display: grid;
-  grid-template-columns: 150px 1fr 1fr;
-  gap: 1rem;
-  padding: 0.5rem 0;
-  background-color: #f8f9fa;
-  margin-bottom: 0.5rem;
-}
+/* -------------------------------
+   DATE INPUT SPECIFIC STYLING
+--------------------------------*/
 
-.grid-header span {
+/* The base styling for date input */
+input[type="date"] {
+  width: 100%;
+  height: 48px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  
+  position: relative;
   text-align: left;
-  font-weight: 500;
-}
-
-.grid-row {
-  display: grid;
-  grid-template-columns: 150px 1fr 1fr;
-  gap: 1rem;
+  -webkit-appearance: none;  
+  -moz-appearance: none;     
+  appearance: none;
+  display: flex;
   align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+  justify-content: flex-start;
 }
 
-.day-label {
-  font-weight: 500;
+/* The calendar icon positioning on Chrome */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0.75rem;
+  margin: 0;
+  cursor: pointer;
 }
+
+/* Show date text as gray (#999) when empty/invalid */
+input[type="date"]:invalid,
+input[type="date"]:invalid::-webkit-datetime-edit,
+input[type="date"]:invalid::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]:invalid::-webkit-datetime-edit-text,
+input[type="date"]:invalid::-webkit-datetime-edit-month-field,
+input[type="date"]:invalid::-webkit-datetime-edit-day-field,
+input[type="date"]:invalid::-webkit-datetime-edit-year-field {
+  color: #999999 !important;
+}
+
+/* Switch to black (#000) once a valid date is selected */
+input[type="date"]:valid,
+input[type="date"]:valid::-webkit-datetime-edit,
+input[type="date"]:valid::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]:valid::-webkit-datetime-edit-text,
+input[type="date"]:valid::-webkit-datetime-edit-month-field,
+input[type="date"]:valid::-webkit-datetime-edit-day-field,
+input[type="date"]:valid::-webkit-datetime-edit-year-field {
+  color: #000000 !important;
+}
+
+/* -------------------------------
+   SIGNATURE PAD SECTION
+--------------------------------*/
 
 .signature-section {
   margin-bottom: 2rem;
@@ -163,6 +204,10 @@ select,
   background-color: #333333;
 }
 
+/* -------------------------------
+   SUBMIT BUTTON AREA
+--------------------------------*/
+
 .submit-container {
   width: 50%;
   margin: 3rem auto 3rem;
@@ -186,6 +231,45 @@ select,
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* -------------------------------
+   SCHEDULE GRID
+--------------------------------*/
+
+.schedule-grid {
+  margin-bottom: 2rem;
+}
+
+.grid-header {
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  background-color: #f8f9fa;
+  margin-bottom: 0.5rem;
+}
+
+.grid-header span {
+  text-align: left;
+  font-weight: 500;
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.day-label {
+  font-weight: 500;
+}
+
+/* -------------------------------
+   RESPONSIVE ADJUSTMENTS
+--------------------------------*/
 
 @media (max-width: 768px) {
   .signature-pad-wrapper {
@@ -222,7 +306,7 @@ select,
     font-size: 0.9rem;
   }
 
-  /* Maintain consistent input sizes on mobile */
+  /* Ensure consistent input sizes on mobile */
   input[type="text"],
   input[type="date"],
   input[type="week"],
@@ -241,67 +325,13 @@ select,
   }
 }
 
-/* Regular input placeholder styling */
-input::placeholder {
-  color: #999999;
-  font-family: Georgia, 'Times New Roman', Times, serif;
-}
-
-/* Date input styling updates */
-input[type="date"] {
-  position: relative;
-  color: #333;
-  text-align: left !important;
-  min-width: 100%;
-  max-width: 100%;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start !important;
-}
-
-/* Date field wrapper alignment */
-input[type="date"]::-webkit-datetime-edit-fields-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start !important;
-  width: 100%;
-  padding: 0;
-  margin-left: 0;
-}
-
-/* Individual date fields alignment */
-input[type="date"]::-webkit-datetime-edit-text,
-input[type="date"]::-webkit-datetime-edit-month-field,
-input[type="date"]::-webkit-datetime-edit-day-field,
-input[type="date"]::-webkit-datetime-edit-year-field {
-  text-align: left !important;
-  margin: 0;
-  padding: 0;
-}
-
-/* Calendar icon positioning */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  position: absolute;
-  right: 0.75rem;
-  margin: 0;
-}
-
-/* Selected date styling */
-input[type="date"]:valid {
-  text-align: left;
-  padding-left: 0.75rem;
-}
-
 /* Service week display container */
 .service-week-display {
   width: 100%;
   max-width: 100%;
 }
 
-/* Service week date range alignment */
+/* Adjust if you have a date range area */
 .date-range {
   text-align: left;
   padding-left: 0;
