@@ -8,3 +8,9 @@ node_modules/
 build/
 .DS_Store
 .env
+
+# Ignore .pem files
+*.pem
+
+# Additional sensitive files you might want to ignore
+.env.local

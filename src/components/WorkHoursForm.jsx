@@ -1,30 +1,32 @@
 import React, { useState, useRef } from 'react';
 import SignaturePad from 'react-signature-pad-wrapper';
 import './WorkHoursForm.css';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const WorkHoursForm = () => {
   const signatureRef = useRef();
   const [formData, setFormData] = useState({
     employeeName: '',
-    requestDate: '',
+    requestDate: null,
     requestorName: '',
     serviceWeek: {
       start: '',
       end: ''
     },
     schedule: {
-      Monday: { time: '', location: '' },
-      Tuesday: { time: '', location: '' },
-      Wednesday: { time: '', location: '' },
-      Thursday: { time: '', location: '' },
-      Friday: { time: '', location: '' },
+      Monday: { time: '', location: '', customTime: '' },
+      Tuesday: { time: '', location: '', customTime: '' },
+      Wednesday: { time: '', location: '', customTime: '' },
+      Thursday: { time: '', location: '', customTime: '' },
+      Friday: { time: '', location: '', customTime: '' },
     },
     supervisorSignature: null,
   });
 
   const workingTimeOptions = [
     'Day Shift: 8:00 AM - 5:00 PM',
-    'Night Shift: 4:00 PM - 12:00 AM',
+    'Night Shift: 8:00 PM - 04:00 AM',
     'Off',
     'Type in'
   ];
@@ -52,15 +54,6 @@ const WorkHoursForm = () => {
       start: monday.toISOString().split('T')[0],
       end: friday.toISOString().split('T')[0]
     };
-  };
-
-  // Handle service week selection
-  const handleWeekSelection = (date) => {
-    const weekDates = getWeekDates(date);
-    setFormData(prev => ({
-      ...prev,
-      serviceWeek: weekDates
-    }));
   };
 
   const handleInputChange = (day, field, value) => {
@@ -110,6 +103,43 @@ const WorkHoursForm = () => {
     }
   };
 
+  const handleServiceWeekChange = (date) => {
+    if (date) {
+      const weekDates = getWeekDates(date);
+      setFormData(prev => ({
+        ...prev,
+        serviceWeek: weekDates
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        serviceWeek: {
+          start: '',
+          end: ''
+        }
+      }));
+    }
+  };
+
+  const handleDateChange = (date) => {
+    setFormData(prev => ({ ...prev, requestDate: date }));
+  };
+
+  // Add this helper function to format the date
+  const formatDayDate = (baseDate, dayOffset) => {
+    const date = new Date(baseDate);
+    date.setDate(date.getDate() + dayOffset);
+    return date.toLocaleDateString();
+  };
+
+  // Add this function to get the day's date
+  const getDayDate = (day) => {
+    if (!formData.serviceWeek.start) return '';
+    const dayIndex = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].indexOf(day);
+    if (dayIndex === -1) return '';
+    return formatDayDate(formData.serviceWeek.start, dayIndex);
+  };
+
   return (
     <div className="form-container">
       <h1>Weekly Work Hours Submission Form</h1>
@@ -127,15 +157,6 @@ const WorkHoursForm = () => {
         </div>
 
         <div className="input-group">
-          <label>Request Date</label>
-          <input
-            type="date"
-            value={formData.requestDate}
-            onChange={(e) => setFormData(prev => ({ ...prev, requestDate: e.target.value }))}
-          />
-        </div>
-
-        <div className="input-group">
           <label>Requestor Name</label>
           <input
             type="text"
@@ -146,19 +167,34 @@ const WorkHoursForm = () => {
         </div>
 
         <div className="input-group">
-          <label>Service Week (Monday - Friday)</label>
-          <div className="service-week-display">
-            <input
-              type="date"
-              value={formData.serviceWeek.start}
-              onChange={(e) => handleWeekSelection(e.target.value)}
+          <label>Request Date</label>
+          <div className="date-input-container">
+            <DatePicker
+              selected={formData.requestDate}
+              onChange={handleDateChange}
+              placeholderText="Select request date"
+              className="datepicker-input"
+              popperPlacement="bottom"
             />
-            <span className="date-range">
-              {formData.serviceWeek.start && formData.serviceWeek.end && 
-                `${new Date(formData.serviceWeek.start).toLocaleDateString()} - ${new Date(formData.serviceWeek.end).toLocaleDateString()}`
-              }
-            </span>
           </div>
+        </div>
+
+        <div className="input-group">
+          <label>Service Week</label>
+          <div className="date-input-container">
+            <DatePicker
+              selected={formData.serviceWeek.start ? new Date(formData.serviceWeek.start) : null}
+              onChange={handleServiceWeekChange}
+              placeholderText="Select service week"
+              className="datepicker-input"
+              popperPlacement="bottom"
+            />
+          </div>
+          {formData.serviceWeek.start && formData.serviceWeek.end && (
+            <div className="service-week-dates">
+              Monday - Friday: {`${new Date(formData.serviceWeek.start).toLocaleDateString()} - ${new Date(formData.serviceWeek.end).toLocaleDateString()}`}
+            </div>
+          )}
         </div>
 
         <div className="schedule-grid">
@@ -170,16 +206,31 @@ const WorkHoursForm = () => {
 
           {Object.keys(formData.schedule).map((day) => (
             <div key={day} className="grid-row">
-              <span className="day-label">{day}</span>
-              <select
-                value={formData.schedule[day].time}
-                onChange={(e) => handleInputChange(day, 'time', e.target.value)}
-              >
-                <option value="">Select working time</option>
-                {workingTimeOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
+              <span className="day-label">
+                {day}
+                {formData.serviceWeek.start && (
+                  <span className="day-date"> ({getDayDate(day)})</span>
+                )}
+              </span>
+              {formData.schedule[day].time === 'Type in' ? (
+                <input
+                  type="text"
+                  placeholder="Enter working hours"
+                  value={formData.schedule[day].customTime || ''}
+                  onChange={(e) => handleInputChange(day, 'customTime', e.target.value)}
+                  className="custom-time-input"
+                />
+              ) : (
+                <select
+                  value={formData.schedule[day].time}
+                  onChange={(e) => handleInputChange(day, 'time', e.target.value)}
+                >
+                  <option value="">Select working time</option>
+                  {workingTimeOptions.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              )}
               <select
                 value={formData.schedule[day].location}
                 onChange={(e) => handleInputChange(day, 'location', e.target.value)}

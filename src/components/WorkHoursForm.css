@@ -33,7 +33,7 @@ h1 {
 }
 
 .input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   width: 100%;
   max-width: 100%;
 }
@@ -73,37 +73,37 @@ input::placeholder {
    DATE INPUT SPECIFIC STYLING
 --------------------------------*/
 
-/* The base styling for date input */
+/* Input base styling */
+input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+/* Date input specific styling */
+/* Single date input with placeholder text and calendar icon */
 input[type="date"] {
   width: 100%;
   height: 48px;
-  padding: 0.75rem;
+  padding: 0.75rem 2.5rem 0.75rem 0.75rem; /* extra right padding for icon */
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 16px;
   box-sizing: border-box;
-  background-color: #ffffff;
+  background-color: #fff;
+  color: #333;
+  appearance: none;            /* Remove default date arrow on some browsers */
+  -webkit-appearance: none;    /* Remove default date arrow in Safari/Chrome */
+  -moz-appearance: none;
   font-family: Georgia, 'Times New Roman', Times, serif;
-  
+  margin-bottom: 1rem;
   position: relative;
-  text-align: left;
-  -webkit-appearance: none;  
-  -moz-appearance: none;     
-  appearance: none;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
 }
 
-/* The calendar icon positioning on Chrome */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  position: absolute;
-  right: 0.75rem;
-  margin: 0;
-  cursor: pointer;
-}
-
-/* Show date text as gray (#999) when empty/invalid */
+/* Placeholder color if empty/invalid date */
 input[type="date"]:invalid,
 input[type="date"]:invalid::-webkit-datetime-edit,
 input[type="date"]:invalid::-webkit-datetime-edit-fields-wrapper,
@@ -111,10 +111,10 @@ input[type="date"]:invalid::-webkit-datetime-edit-text,
 input[type="date"]:invalid::-webkit-datetime-edit-month-field,
 input[type="date"]:invalid::-webkit-datetime-edit-day-field,
 input[type="date"]:invalid::-webkit-datetime-edit-year-field {
-  color: #999999 !important;
+  color: #999 !important;
 }
 
-/* Switch to black (#000) once a valid date is selected */
+/* Switch to black text once a valid date is selected */
 input[type="date"]:valid,
 input[type="date"]:valid::-webkit-datetime-edit,
 input[type="date"]:valid::-webkit-datetime-edit-fields-wrapper,
@@ -122,8 +122,58 @@ input[type="date"]:valid::-webkit-datetime-edit-text,
 input[type="date"]:valid::-webkit-datetime-edit-month-field,
 input[type="date"]:valid::-webkit-datetime-edit-day-field,
 input[type="date"]:valid::-webkit-datetime-edit-year-field {
-  color: #000000 !important;
+  color: #000 !important;
 }
+
+/* Built-in calendar picker icon in Chrome/Edge */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+/* Safari placeholder workaround using ::before */
+@supports (-webkit-touch-callout: none) {
+  input[type="date"] {
+    /* Force textfield appearance so we can overlay a placeholder */
+    appearance: textfield;
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  /* Show placeholder text in the input before a user picks a date */
+  input[type="date"]::before {
+    content: attr(placeholder);
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    pointer-events: none; /* let clicks pass through to the real input */
+  }
+
+  /* Hide the placeholder on focus or if a valid date is chosen */
+  input[type="date"]:focus::before,
+  input[type="date"]:valid::before {
+    display: none;
+  }
+
+  /* Make sure the calendar icon is still visible on Safari */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    opacity: 0.7;
+    width: 20px;
+    height: 20px;
+  }
+}
+
 
 /* -------------------------------
    SIGNATURE PAD SECTION
@@ -265,6 +315,15 @@ input[type="date"]:valid::-webkit-datetime-edit-year-field {
 
 .day-label {
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.day-date {
+  font-weight: normal;
+  color: #666;
+  font-size: 0.9em;
 }
 
 /* -------------------------------
@@ -335,4 +394,54 @@ input[type="date"]:valid::-webkit-datetime-edit-year-field {
 .date-range {
   text-align: left;
   padding-left: 0;
+}
+
+.datepicker-input {
+  width: 300px;
+  height: 40px;
+  padding: 1px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Additional styles for the datepicker dropdown can be added here */
+
+.service-week {
+  margin-top: 1rem;
+  font-size: 14px;
+  color: #333; /* Adjust color as needed */
+}
+
+.service-week-section {
+  margin: 1.5rem 0;
+}
+
+.service-week-dates {
+  font-size: 16px;
+  color: #333;
+  margin-top: 0.2rem;
+  margin-bottom: 2.5rem;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.date-input-container {
+  margin-bottom: 0;
+}
+
+.custom-time-input {
+  height: 48px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  width: 100%;
+}
+
+.custom-time-input::placeholder {
+  color: #999999;
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
