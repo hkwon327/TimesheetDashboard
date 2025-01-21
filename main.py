@@ -12,6 +12,7 @@ import os
 import base64
 from PIL import Image
 from typing import List
+import uvicorn
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -149,3 +150,9 @@ async def generate_pdf(name_input: NameInput):
     except Exception as e:
         logger.error(f"Error in generate_pdf: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    uvicorn.run("app:app", 
+                host="0.0.0.0",
+                port=8000,
+                reload=False)  # Set to False in production
