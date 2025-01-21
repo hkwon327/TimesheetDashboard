@@ -171,12 +171,25 @@ const WorkHoursForm = () => {
         ? new Date(formData.requestDate).toLocaleDateString()
         : '';
 
-      // Create request data with optional signature
+      const serviceWeekFormatted = formData.serviceWeek.start && formData.serviceWeek.end
+        ? `${new Date(formData.serviceWeek.start).toLocaleDateString()} - ${new Date(formData.serviceWeek.end).toLocaleDateString()}`
+        : '';
+
+      // Format schedule data with dates
+      const scheduleData = Object.entries(formData.schedule).map(([day, data]) => ({
+        day,
+        date: getDayDate(day),
+        time: data.time === 'Type in' ? data.customTime : data.time,
+        location: data.location
+      }));
+
       const requestData = {
         employeeName: formData.employeeName || '',
         requestorName: formData.requestorName || '',
-        requestDate: formattedDate || '',
-        signature: formData.savedSignature || '' // Make signature optional
+        requestDate: formattedDate,
+        serviceWeek: serviceWeekFormatted,
+        schedule: scheduleData,  // Add schedule data
+        signature: formData.savedSignature || ''
       };
 
       console.log('Sending data to API:', requestData);

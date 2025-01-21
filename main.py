@@ -11,6 +11,7 @@ import logging
 import os
 import base64
 from PIL import Image
+from typing import List
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -33,11 +34,19 @@ app.add_middleware(
 async def root():
     return {"message": "API is running"}
 
+class ScheduleItem(BaseModel):
+    day: str
+    date: str
+    time: str = ""  # Default empty string for optional fields
+    location: str = ""
+
 class NameInput(BaseModel):
-    employeeName: str
-    requestorName: str
-    requestDate: str
-    signature: str
+    employeeName: str = ""
+    requestorName: str = ""
+    requestDate: str = ""
+    serviceWeek: str
+    schedule: List[ScheduleItem]
+    signature: str = ""
 
 @app.post("/generate-pdf")
 async def generate_pdf(name_input: NameInput):
@@ -51,13 +60,29 @@ async def generate_pdf(name_input: NameInput):
         packet = io.BytesIO()
         can = canvas.Canvas(packet, pagesize=letter)
         
-        # Draw text fields
+        # Draw header information
         can.drawString(250, 435, name_input.employeeName)
         can.drawString(250, 415, name_input.requestorName)
         can.drawString(250, 395, name_input.requestDate)
+        can.drawString(250, 375, name_input.serviceWeek)
         
-        # Process signature
-        if name_input.signature:
+        # Draw schedule table
+        y_position = 355
+        for schedule_item in name_input.schedule:
+            if schedule_item.time or schedule_item.location:  # Only draw if there's time or location
+                schedule_text = f"{schedule_item.day} ({schedule_item.date})"
+                can.drawString(100, y_position, schedule_text)
+                
+                # Draw time and location if they exist
+                if schedule_item.time:
+                    can.drawString(250, y_position, schedule_item.time)
+                if schedule_item.location:
+                    can.drawString(450, y_position, schedule_item.location)
+                
+                y_position -= 20  # Space between lines
+        
+        # Process signature if exists
+        if name_input.signature and name_input.signature.startswith('data:image'):
             try:
                 # Extract and decode signature
                 signature_data = name_input.signature.split(',')[1]
@@ -89,10 +114,10 @@ async def generate_pdf(name_input: NameInput):
                 # Clean up temp file
                 os.remove(temp_file_path)
                 
-                logger.info("Successfully added signature to PDF")
+                logger.info("Added signature to PDF")
             except Exception as e:
                 logger.error(f"Error processing signature: {str(e)}")
-                raise HTTPException(status_code=500, detail=f"Error processing signature: {str(e)}")
+                logger.info("Continuing without signature")
         
         can.save()
         packet.seek(0)
