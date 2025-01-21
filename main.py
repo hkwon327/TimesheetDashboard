@@ -9,6 +9,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import logging
 import os
+import base64
+from PIL import Image
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -35,13 +37,13 @@ class NameInput(BaseModel):
     employeeName: str
     requestorName: str
     requestDate: str
+    signature: str
 
 @app.post("/generate-pdf")
 async def generate_pdf(name_input: NameInput):
     try:
-        logger.info(f"Received request with data: {name_input}")
+        logger.info("Processing PDF generation request...")
         
-        # Add error handling for file existence
         if not os.path.exists("Form.pdf"):
             logger.error("Form.pdf not found")
             raise HTTPException(status_code=404, detail="Template PDF not found")
@@ -49,48 +51,76 @@ async def generate_pdf(name_input: NameInput):
         packet = io.BytesIO()
         can = canvas.Canvas(packet, pagesize=letter)
         
-        # Employee Name
+        # Draw text fields
         can.drawString(250, 435, name_input.employeeName)
-        
-        # Requestor Name
         can.drawString(250, 415, name_input.requestorName)
-        
-        # Request Date
         can.drawString(250, 395, name_input.requestDate)
         
-        can.save()
+        # Process signature
+        if name_input.signature:
+            try:
+                # Extract and decode signature
+                signature_data = name_input.signature.split(',')[1]
+                signature_bytes = base64.b64decode(signature_data)
+                
+                # Create image and convert to RGBA for transparency
+                signature_image = Image.open(io.BytesIO(signature_bytes))
+                signature_image = signature_image.convert('RGBA')
+                
+                # Convert black background to transparent
+                datas = signature_image.getdata()
+                newData = []
+                for item in datas:
+                    # Change all white (also shades of whites) pixels to transparent
+                    if item[0] >= 200 and item[1] >= 200 and item[2] >= 200:
+                        newData.append((255, 255, 255, 0))
+                    else:
+                        newData.append(item)
+                
+                signature_image.putdata(newData)
+                
+                # Save temporary file with transparency
+                temp_file_path = "temp_signature.png"
+                signature_image.save(temp_file_path, "PNG")
+                
+                # Draw signature on PDF
+                can.drawImage(temp_file_path, 250, 200, width=100, height=50, mask='auto')
+                
+                # Clean up temp file
+                os.remove(temp_file_path)
+                
+                logger.info("Successfully added signature to PDF")
+            except Exception as e:
+                logger.error(f"Error processing signature: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Error processing signature: {str(e)}")
         
+        can.save()
         packet.seek(0)
         
-        # Open the PDF with error handling
-        try:
-            with open("Form.pdf", "rb") as pdf_file:
-                existing_pdf = PdfReader(pdf_file)
-                output = PdfWriter()
-                
-                page = existing_pdf.pages[0]
-                overlay = PdfReader(packet)
-                page.merge_page(overlay.pages[0])
-                output.add_page(page)
-                
-                output_stream = io.BytesIO()
-                output.write(output_stream)
-                output_stream.seek(0)
-                
-                logger.info("PDF generated successfully")
-                return Response(
-                    content=output_stream.getvalue(),
-                    media_type="application/pdf",
-                    headers={
-                        "Content-Disposition": "inline; filename=modified.pdf",
-                        "Access-Control-Allow-Origin": "http://bosk-frontend.s3-website-us-east-1.amazonaws.com",
-                        "Access-Control-Expose-Headers": "Content-Disposition"
-                    }
-                )
-        except Exception as e:
-            logger.error(f"Error processing PDF: {e}")
-            raise HTTPException(status_code=500, detail="Error processing PDF")
-
+        # Create PDF with signature
+        existing_pdf = PdfReader("Form.pdf")
+        output = PdfWriter()
+        
+        page = existing_pdf.pages[0]
+        overlay = PdfReader(packet)
+        page.merge_page(overlay.pages[0])
+        output.add_page(page)
+        
+        # Save to memory
+        output_stream = io.BytesIO()
+        output.write(output_stream)
+        output_stream.seek(0)
+        
+        return Response(
+            content=output_stream.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "inline; filename=modified.pdf",
+                "Access-Control-Allow-Origin": "http://bosk-frontend.s3-website-us-east-1.amazonaws.com",
+                "Access-Control-Expose-Headers": "Content-Disposition"
+            }
+        )
+        
     except Exception as e:
-        logger.error(f"Error in modify_pdf: {e}")
+        logger.error(f"Error in generate_pdf: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

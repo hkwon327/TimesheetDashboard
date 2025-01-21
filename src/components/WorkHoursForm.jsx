@@ -22,6 +22,7 @@ const WorkHoursForm = () => {
       Friday: { time: '', location: '', customTime: '' },
     },
     supervisorSignature: null,
+    savedSignature: null  // Add this to store the saved signature
   });
 
   const workingTimeOptions = [
@@ -99,19 +100,31 @@ const WorkHoursForm = () => {
     }
   };
 
-  // Completely separate clear function
-  const handleClearSignature = (e) => {
-    e.preventDefault(); // Prevent any form submission
+  const handleSaveSignature = () => {
     if (signatureRef.current) {
-      signatureRef.current.clear();
+      // Get signature data
+      const signatureData = signatureRef.current.toDataURL();
+      
+      // Save signature to form state
+      setFormData(prev => ({
+        ...prev,
+        savedSignature: signatureData
+      }));
+
+      console.log('Signature saved');
+      // Optional: Add visual feedback
+      alert('Signature saved successfully');
     }
   };
 
-  // Separate save function
-  const handleSaveSignature = (e) => {
-    e.preventDefault(); // Prevent any form submission
+  const handleClearSignature = () => {
     if (signatureRef.current) {
-      console.log('Signature saved');
+      signatureRef.current.clear();
+      // Clear saved signature from state
+      setFormData(prev => ({
+        ...prev,
+        savedSignature: null
+      }));
     }
   };
 
@@ -154,27 +167,26 @@ const WorkHoursForm = () => {
 
   const handlePreview = async () => {
     try {
-      // Format the date to a string if it exists
       const formattedDate = formData.requestDate 
         ? new Date(formData.requestDate).toLocaleDateString()
         : '';
 
-      console.log('Preview data:', {
-        employeeName: formData.employeeName,
-        requestorName: formData.requestorName,
-        requestDate: formattedDate
-      });
+      // Create request data with optional signature
+      const requestData = {
+        employeeName: formData.employeeName || '',
+        requestorName: formData.requestorName || '',
+        requestDate: formattedDate || '',
+        signature: formData.savedSignature || '' // Make signature optional
+      };
+
+      console.log('Sending data to API:', requestData);
 
       const response = await fetch('http://localhost:8000/generate-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          employeeName: formData.employeeName || '',
-          requestorName: formData.requestorName || '',
-          requestDate: formattedDate
-        })
+        body: JSON.stringify(requestData)
       });
 
       if (!response.ok) {
