@@ -71,6 +71,7 @@ const WorkHoursForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Submitting form data:', formData);
     
     // Signature validation ONLY for submit
     const isSignatureEmpty = signatureRef.current?.isEmpty();
@@ -80,10 +81,21 @@ const WorkHoursForm = () => {
     }
 
     try {
-      // Add your API submission logic here
-      console.log('Form submitted:', formData);
+      const response = await fetch('http://localhost:8000/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: formData.employeeName })
+      });
+      console.log('Response:', response);
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      // Handle successful response
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -138,6 +150,45 @@ const WorkHoursForm = () => {
     const dayIndex = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].indexOf(day);
     if (dayIndex === -1) return '';
     return formatDayDate(formData.serviceWeek.start, dayIndex);
+  };
+
+  const handlePreview = async () => {
+    try {
+      // Format the date to a string if it exists
+      const formattedDate = formData.requestDate 
+        ? new Date(formData.requestDate).toLocaleDateString()
+        : '';
+
+      console.log('Preview data:', {
+        employeeName: formData.employeeName,
+        requestorName: formData.requestorName,
+        requestDate: formattedDate
+      });
+
+      const response = await fetch('http://localhost:8000/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employeeName: formData.employeeName || '',
+          requestorName: formData.requestorName || '',
+          requestDate: formattedDate
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const windowFeatures = 'width=800,height=900,left=200,top=100';
+      window.open(url, 'PreviewWindow', windowFeatures);
+    } catch (error) {
+      console.error('Error generating preview:', error);
+    }
   };
 
   return (
@@ -274,8 +325,19 @@ const WorkHoursForm = () => {
           </div>
         </div>
 
-        <div className="submit-container">
-          <button type="submit" className="submit-button">
+        <div className="form-buttons">
+          <button
+            type="button"
+            className="preview-button"
+            onClick={handlePreview}
+          >
+            Preview
+          </button>
+          <button
+            type="submit"
+            className="submit-button"
+            onClick={handleSubmit}
+          >
             Submit
           </button>
         </div>
