@@ -22,19 +22,22 @@ const WorkHoursForm = () => {
       Friday: { time: '', location: '', customTime: '' },
     },
     supervisorSignature: null,
-    savedSignature: null  // Add this to store the saved signature
+    savedSignature: null  
   });
 
   const workingTimeOptions = [
-    'Day Shift: 8:00 AM - 5:00 PM',
-    'Night Shift: 8:00 PM - 04:00 AM',
+    '8:00 AM - 5:00 PM',
+    //'Day Shift: 8:00 AM - 5:00 PM',
+    //'Night Shift: 8:00 PM - 04:00 AM',
     'Off',
-    'Type in'
+    //'Type in'
   ];
 
   const locationOptions = [
+    'BOSK Trailer',
     'TN',
-    'KY'
+    'N/A',
+    //'KY'
   ];
 
   // Function to get Monday and Friday dates from a selected date
@@ -82,7 +85,7 @@ const WorkHoursForm = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/generate-pdf', {
+      const response = await fetch('http://98.81.114.125/generate-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,7 +197,7 @@ const WorkHoursForm = () => {
 
       console.log('Sending data to API:', requestData);
 
-      const response = await fetch('http://localhost:8000/generate-pdf', {
+      const response = await fetch('http://98.81.114.125/generate-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,6 +218,8 @@ const WorkHoursForm = () => {
       console.error('Error generating preview:', error);
     }
   };
+
+  console.log('Form Data:', formData);  // Add this before return statement
 
   return (
     <div className="form-container">

@@ -22,10 +22,7 @@ app = FastAPI()
 # CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://bosk-frontend.s3-website-us-east-1.amazonaws.com",
-        "http://localhost:3000"
-    ],
+    allow_origins=["*"],  # For testing, allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,7 +59,7 @@ async def generate_pdf(name_input: NameInput):
         can = canvas.Canvas(packet, pagesize=letter)
         
         # Draw header information
-        can.drawString(250, 435, name_input.employeeName)
+        can.drawString(250, 605, name_input.employeeName)
         can.drawString(250, 415, name_input.requestorName)
         can.drawString(250, 395, name_input.requestDate)
         can.drawString(250, 375, name_input.serviceWeek)
@@ -80,7 +77,7 @@ async def generate_pdf(name_input: NameInput):
                 if schedule_item.location:
                     can.drawString(450, y_position, schedule_item.location)
                 
-                y_position -= 20  # Space between lines
+                y_position -= 10  # Space between lines
         
         # Process signature if exists
         if name_input.signature and name_input.signature.startswith('data:image'):
@@ -110,7 +107,7 @@ async def generate_pdf(name_input: NameInput):
                 signature_image.save(temp_file_path, "PNG")
                 
                 # Draw signature on PDF
-                can.drawImage(temp_file_path, 250, 200, width=100, height=50, mask='auto')
+                can.drawImage(temp_file_path, 250, 300, width=200, height=100, mask='auto')
                 
                 # Clean up temp file
                 os.remove(temp_file_path)
