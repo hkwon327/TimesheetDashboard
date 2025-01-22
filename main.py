@@ -107,7 +107,7 @@ async def generate_pdf(name_input: NameInput):
                 signature_image.save(temp_file_path, "PNG")
                 
                 # Draw signature on PDF
-                can.drawImage(temp_file_path, 700, 0, width=200, height=100, mask='auto')
+                can.drawImage(temp_file_path, 500, 0, width=200, height=100, mask='auto')
                 
                 # Clean up temp file
                 os.remove(temp_file_path)
