@@ -3,47 +3,98 @@
 --------------------------------*/
 
 body {
-  background-color: #ffffff;
-  font-family: 'Quicksand', sans-serif;
+  background-color: #f5f5f5;
+  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .form-container {
-  max-width: 800px;
+  max-width: 950px;
+  width: 90%;
   margin: 2rem auto;
-  padding: 2rem;
-  background-color: #F0F7F0;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  background: white;
+  border-radius: 0px;  /* Only round top corners */
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
 }
 
-h1 {
+/* Title section with full-width border */
+.form-header {
+  margin: 0;
+  padding: 2.5rem 2.5rem 1.5rem;
+  animation: fadeInUp 1s ease-out;
+}
+
+/* Form content section */
+form {
+  background: #eaf0e4;
+  margin: 1rem auto;
+  padding: 2.5rem 2.5rem 2.5rem 3.5rem;
+  border-radius: 55px 55px 0 0;  /* Only round top corners */
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  max-width: 950px;
+  width: 90%;
+}
+
+/* Remove the divider since we're using separate rectangles */
+.form-header::after {
+  display: none;
+}
+
+h1, 
+.form-subtitle,
+.logo-text {
   text-align: center;
   color: #262626;
   margin-bottom: 0.2rem;
   font-family: 'Quicksand', sans-serif;
-  font-size: 1.8rem;
+  font-size: 2rem;
+  font-weight: 600;
   line-height: 1.5;
 }
 
 .form-subtitle {
-  text-align: center;
-  color: #585757;
-  margin-bottom: 2rem;
-  margin-top: 1rem;
-  font-size: 1rem;
-  font-family: 'Quicksand', sans-serif;
+  margin-top: 0;
+  font-size: 0.9rem;
 }
 
 .input-group {
   margin-bottom: 1rem;
-  width: 100%;
-  max-width: 100%;
+  width: 950%;
+  max-width: 95%;
 }
 
-label {
+label,
+.day-label,
+.service-week-dates {
+  padding-left: 15px;  /* Add left padding to labels */
+}
+
+/* Table-like layout for days */
+.day-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-left: 15px;
+}
+
+/* Employee name and requestor name labels */
+.form-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
+  margin-bottom: 0.8rem;
+  padding-left: 15px;
+}
+
+/* Service week label */
+.service-week-label {
+  padding-left: 15px;  /* Add left padding to service week label */
+}
+
+/* Request date label */
+.request-date-label {
+  padding-left: 15px;  /* Add left padding to request date label */
 }
 
 /* -------------------------------
@@ -62,15 +113,17 @@ select,
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 16px;
   box-sizing: border-box;
   background-color: #ffffff;
-  font-family: 'Quicksand', sans-serif;
+  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif;
 }
 
-input::placeholder {
+input::placeholder,
+select::placeholder,
+.custom-time-input::placeholder {
   color: #999999;
-  font-family: 'Quicksand', sans-serif;
+  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif;
+  font-size: 14px;
 }
 
 /* Text inputs (employee name, requestor name) */
@@ -100,7 +153,7 @@ input[type="date"] {
   padding: 0.75rem 2.5rem 0.75rem 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
   box-sizing: border-box;
   background-color: #fff;
   color: #333;
@@ -436,9 +489,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* Additional styles for the datepicker dropdown can be added here */
 
 .service-week {
-  margin-top: 1rem;
-  font-size: 14px;
-  color: #333; /* Adjust color as needed */
+  margin-bottom: 2.5rem;  /* Increased space after service week */
 }
 
 .service-week-section {
@@ -446,11 +497,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .service-week-dates {
-  font-size: 16px;
-  color: #333;
   margin-top: 0.2rem;
-  margin-bottom: 2.5rem;
-  font-family: 'Quicksand', sans-serif;
+  margin-bottom: 1.5rem;
 }
 
 .date-input-container {
@@ -462,16 +510,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
   box-sizing: border-box;
   background-color: #ffffff;
   font-family: 'Quicksand', sans-serif;
   width: 100%;
-}
-
-.custom-time-input::placeholder {
-  color: #999999;
-  font-family: 'Quicksand', sans-serif;
 }
 
 /* Form buttons container */
@@ -542,4 +585,169 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .react-datepicker__input-container input {
   width: 100% !important;
+}
+
+/* Animation keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logo-container {
+  text-align: center;
+  margin: 3.5rem 0 0rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 0.4s forwards;
+}
+
+.logo-text {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 0.6s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Update all other text elements to Century Schoolbook */
+input[type="text"],
+input[type="week"],
+input[type="date"],
+select,
+.service-week-display input,
+label,
+button,
+.custom-time-input,
+.day-label,
+.day-date,
+.service-week-dates {
+  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif;
+  font-size: 14px;  /* Reduced from 16px */
+}
+
+/* Update placeholder text */
+input::placeholder,
+select::placeholder,
+.custom-time-input::placeholder {
+  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif;
+  font-size: 14px;  /* Reduced from 16px */
+}
+
+/* Input boxes only */
+input[type="text"],
+input[type="week"],
+input[type="date"],
+.service-week-display input,
+.custom-time-input {
+  height: 38px;  /* Reduced height for input boxes */
+  width: 100%;  /* Reduced width for input boxes */
+  padding: 0.4rem 0.6rem;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+/* Keep select dropdowns at original size */
+select {
+  height: 38px;
+  width: 85%;
+  padding: 0.4rem 0.6rem;
+  padding-right: 25px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+/* Date picker specific styling */
+.react-datepicker-wrapper {
+  width: 160px;  /* Match input width */
+}
+
+.react-datepicker__input-container {
+  width: 100%;
+}
+
+/* Day/Time/Location header spacing */
+.day-header {
+  margin-top: 1.5rem;  /* Add space above the header */
+  margin-bottom: 1rem;
+  padding-left: 15px;
+}
+
+/* Media queries for responsive design */
+@media screen and (max-width: 768px) {
+  .form-container,
+  form {
+    width: 95%;
+    padding: 2.5rem 2.5rem 2.5rem 3.5rem;  /* Keep same padding as desktop */
+    margin: 1rem auto;
+  }
+  
+  /* Keep input sizes consistent */
+  input[type="text"],
+  input[type="week"],
+  input[type="date"],
+  .service-week-display input,
+  .custom-time-input {
+    height: 32px;
+    width: 160px;  /* Keep same width as desktop */
+  }
+
+  select {
+    height: 35px;
+    width: 160px;  /* Keep same width as desktop */
+  }
+
+  /* Keep spacing consistent */
+  .form-group {
+    margin-bottom: 0.8rem;
+  }
+
+  .form-group label {
+    margin-bottom: 0.8rem;
+    padding-left: 15px;
+  }
+
+  /* Keep day row layout consistent */
+  .day-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-left: 15px;
+  }
+
+  /* Keep header styles consistent */
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  .form-subtitle {
+    font-size: 0.9rem;
+  }
 }

@@ -3,6 +3,7 @@ import SignaturePad from 'react-signature-pad-wrapper';
 import './WorkHoursForm.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import logo from './asset/logo.png';
 
 const WorkHoursForm = () => {
   const signatureRef = useRef();
@@ -223,9 +224,14 @@ const WorkHoursForm = () => {
 
   return (
     <div className="form-container">
-      <h1>Weekly Work Hours Submission Form</h1>
-      <p className="form-subtitle">Please fill in your work schedule for the current week</p>
-
+      <div className="form-header">
+        <h1>Work Hours Request Form</h1>
+        <p className="form-subtitle">Please fill out all required fields</p>
+        <div className="logo-container">
+          <img src={logo} alt="Moveret Logo" className="logo" />
+          <span className="logo-text">M O V E R E T</span>
+        </div>
+      </div>
       <form onSubmit={handleSubmit}>
         <div className="input-group">
           <label>Employee Name</label>
