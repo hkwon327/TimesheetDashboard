@@ -233,47 +233,51 @@ const WorkHoursForm = () => {
         </div>
       </div>
       <form onSubmit={handleSubmit}>
-        <div className="input-group">
-          <label>Employee Name</label>
+        <div className="input-group first-input">
           <input
+            required
             type="text"
-            placeholder="Enter your full name"
+            className="input"
+            //placeholder=" Enter your name"
             value={formData.employeeName}
             onChange={(e) => setFormData(prev => ({ ...prev, employeeName: e.target.value }))}
           />
+          <label className="user-label">Employee Name</label>
         </div>
 
         <div className="input-group">
-          <label>Requestor Name</label>
+          <label className="user-label">Requestor Name</label>
           <input
             type="text"
-            placeholder="Enter requestor name"
+            className="input"
+            //placeholder="Enter requestor name"
             value={formData.requestorName}
             onChange={(e) => setFormData(prev => ({ ...prev, requestorName: e.target.value }))}
           />
         </div>
 
         <div className="input-group">
-          <label>Request Date</label>
+          <label className="user-label">Request Date</label>
           <div className="date-input-container">
             <DatePicker
               selected={formData.requestDate}
               onChange={handleDateChange}
-              placeholderText="Select request date"
-              className="datepicker-input"
+              //placeholderText="Select request date"
+              className="input"
+
               popperPlacement="bottom"
             />
           </div>
         </div>
 
         <div className="input-group">
-          <label>Service Week</label>
+          <label className="user-label">Service Week</label>
           <div className="date-input-container">
             <DatePicker
               selected={formData.serviceWeek.start ? new Date(formData.serviceWeek.start) : null}
               onChange={handleServiceWeekChange}
-              placeholderText="Select service week"
-              className="datepicker-input"
+              //placeholderText="Select service week"
+              className="input"
               popperPlacement="bottom"
             />
           </div>

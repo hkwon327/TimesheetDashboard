@@ -577,6 +577,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* Date picker specific styling */
 .react-datepicker-wrapper {
   width: 100% !important;
+  margin-top: -10px;
 }
 
 .react-datepicker__input-container {
@@ -663,8 +664,9 @@ input[type="week"],
 input[type="date"],
 .service-week-display input,
 .custom-time-input {
-  height: 38px;  /* Reduced height for input boxes */
-  width: 100%;  /* Reduced width for input boxes */
+  margin-left: 35px;
+  height: 40px;  /* Reduced height for input boxes ***********/
+  width: 95%;  /* Reduced width for input boxes */
   padding: 0.4rem 0.6rem;
   font-size: 14px;
   border: 1px solid #ddd;
@@ -751,3 +753,98 @@ select {
     font-size: 0.9rem;
   }
 }
+
+.input-group {
+  position: relative;
+}
+
+.input {
+  border: 1.5px solid #00d676 !important;  /* Added !important to override any other styles */
+  border-radius: 1rem;
+  background: white;
+  padding: 1rem;
+  font-size: 1rem;
+  width: 95%;  /* Adjusted width */
+  height: 40px;  /* Reduced height */
+  text-align: left;
+  line-height: 40px;  /* Match with height */
+  outline: none;
+}
+
+/* Style for placeholder */
+.input::placeholder {
+  color: #918e8e;
+  opacity: 1;
+}
+
+/* Hide placeholder on focus */
+.input:focus::placeholder {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.user-label {
+  position: absolute;
+  left: 14%;
+  transform: translate(-50%, -50%) scale(1);
+  background-color: #ffffff;
+  padding: 0.2em;
+  color: #00d676;
+  pointer-events: none;
+  font-size: 0.9rem;
+}
+
+/* For DatePicker inputs */
+.react-datepicker-wrapper {
+  width: 95% !important;
+  margin-left: 35px;
+}
+
+.react-datepicker__input-container {
+  width: 100% !important;
+}
+
+.react-datepicker__input-container input {
+  width: 100% !important;
+}
+
+.first-input {
+  margin-top: 25px;
+}
+
+/* Remove any extra margins from input groups */
+.input-group {
+  position: relative;
+  margin: 30px 0;
+  padding: 0;
+}
+/* Style for the date picker inputs to match */
+.react-datepicker-wrapper input {
+  border: 1.5px solid #00d676;
+  border-radius: 0.4rem;
+  background: white;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  width: 90%;
+  height: 40px;
+  text-align: left;
+  line-height: 35px;
+  outline: none;
+  margin: 10px 0;
+}
+
+/* Specific styling for DatePicker labels */
+.input-group:nth-child(3) .user-label,
+.input-group:nth-child(4) .user-label {
+  position: absolute;
+  left: 13%;
+  transform: translate(-50%, -50%) scale(1);
+  background-color: #ffffff;
+  padding: 0.2em;
+  color: #00d676;
+  pointer-events: none;
+  font-size: 0.9rem;
+  z-index: 1;  /* Ensure label appears above the input */
+}
+
+
