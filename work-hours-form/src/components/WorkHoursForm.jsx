@@ -26,6 +26,9 @@ const WorkHoursForm = () => {
     savedSignature: null  
   });
 
+  const [isRequestDateOpen, setIsRequestDateOpen] = useState(false);
+  const [isServiceWeekOpen, setIsServiceWeekOpen] = useState(false);
+
   const workingTimeOptions = [
     '8:00 AM - 5:00 PM',
     //'Day Shift: 8:00 AM - 5:00 PM',
@@ -261,11 +264,20 @@ const WorkHoursForm = () => {
           <div className="date-input-container">
             <DatePicker
               selected={formData.requestDate}
-              onChange={handleDateChange}
-              //placeholderText="Select request date"
+              onChange={(date) => {
+                handleDateChange(date);
+                setIsRequestDateOpen(false);
+                if ('ontouchstart' in window) {
+                  const picker = document.querySelector('.react-datepicker-popper');
+                  if (picker) picker.remove();
+                }
+              }}
               className="input"
-
               popperPlacement="bottom"
+              shouldCloseOnSelect={true}
+              open={isRequestDateOpen}
+              onCalendarOpen={() => setIsRequestDateOpen(true)}
+              onCalendarClose={() => setIsRequestDateOpen(false)}
             />
           </div>
         </div>
@@ -275,10 +287,20 @@ const WorkHoursForm = () => {
           <div className="date-input-container">
             <DatePicker
               selected={formData.serviceWeek.start ? new Date(formData.serviceWeek.start) : null}
-              onChange={handleServiceWeekChange}
-              //placeholderText="Select service week"
+              onChange={(date) => {
+                handleServiceWeekChange(date);
+                setIsServiceWeekOpen(false);
+                if ('ontouchstart' in window) {
+                  const picker = document.querySelector('.react-datepicker-popper');
+                  if (picker) picker.remove();
+                }
+              }}
               className="input"
               popperPlacement="bottom"
+              shouldCloseOnSelect={true}
+              open={isServiceWeekOpen}
+              onCalendarOpen={() => setIsServiceWeekOpen(true)}
+              onCalendarClose={() => setIsServiceWeekOpen(false)}
             />
           </div>
           {formData.serviceWeek.start && formData.serviceWeek.end && (
