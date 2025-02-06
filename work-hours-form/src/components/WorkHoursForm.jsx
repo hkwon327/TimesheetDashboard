@@ -79,31 +79,127 @@ const WorkHoursForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Submitting form data:', formData);
     
-    // Signature validation ONLY for submit
-    const isSignatureEmpty = signatureRef.current?.isEmpty();
-    if (isSignatureEmpty) {
-      alert('Please provide supervisor signature before submitting');
+    // 1. Validation 체크
+    if (!formData.employeeName.trim()) {
+      alert('Employee Name is required');
+      return;
+    }
+    
+    if (!formData.requestorName.trim()) {
+      alert('Requestor Name is required');
       return;
     }
 
+    if (!formData.requestDate) {
+      alert('Request Date is required');
+      return;
+    }
+
+    if (!formData.serviceWeek.start || !formData.serviceWeek.end) {
+      alert('Service Week is required');
+      return;
+    }
+
+    // Schedule validation
+    let hasScheduleData = false;
+    let missingFields = [];
+    
+    Object.entries(formData.schedule).forEach(([day, data]) => {
+      if (data.time) { // If time is selected
+        hasScheduleData = true;
+        if (!data.location) {
+          missingFields.push(`Location for ${day}`);
+        }
+      }
+      if (data.location && !data.time) {
+        missingFields.push(`Time for ${day}`);
+      }
+    });
+
+    if (!hasScheduleData) {
+      alert('At least one day schedule must be filled');
+      return;
+    }
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in the following fields:\n${missingFields.join('\n')}`);
+      return;
+    }
+
+    // Signature validation
+    if (!formData.savedSignature) {
+      alert('Please save the supervisor signature before submitting');
+      return;
+    }
+
+    // 2. 모든 validation 통과 후 데이터 준비
+    const submissionData = {
+      employeeName: formData.employeeName,
+      requestorName: formData.requestorName,
+      requestDate: formData.requestDate.toISOString().split('T')[0],
+      serviceWeek: {
+        start: formData.serviceWeek.start,
+        end: formData.serviceWeek.end
+      },
+      schedule: Object.entries(formData.schedule)
+        .filter(([_, data]) => data.time && data.location)
+        .map(([day, data]) => ({
+          day,
+          date: getDayDate(day),
+          time: data.time,
+          location: data.location
+        })),
+      signature: formData.savedSignature
+    };
+
+    console.log('Submitting data:', submissionData);  // 디버깅을 위한 로그
+
     try {
-      const response = await fetch('http://98.81.114.125/generate-pdf', {
+      const response = await fetch('http://127.0.0.1:8000/submit-form', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: formData.employeeName })
+        body: JSON.stringify(submissionData)
       });
-      console.log('Response:', response);
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        const errorText = await response.text();
+        console.error('Server response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      // Handle successful response
+
+      const result = await response.json();
+      alert('Form submitted successfully!');
+      
+      // 4. 폼 초기화 (선택사항)
+      setFormData({
+        employeeName: '',
+        requestDate: null,
+        requestorName: '',
+        serviceWeek: {
+          start: '',
+          end: ''
+        },
+        schedule: {
+          Monday: { time: '', location: '', customTime: '' },
+          Tuesday: { time: '', location: '', customTime: '' },
+          Wednesday: { time: '', location: '', customTime: '' },
+          Thursday: { time: '', location: '', customTime: '' },
+          Friday: { time: '', location: '', customTime: '' },
+        },
+        supervisorSignature: null,
+        savedSignature: null
+      });
+      
+      if (signatureRef.current) {
+        signatureRef.current.clear();
+      }
+
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error submitting form:', error);
+      alert('Failed to submit form. Please try again.');
     }
   };
 
@@ -174,52 +270,68 @@ const WorkHoursForm = () => {
 
   const handlePreview = async () => {
     try {
-      const formattedDate = formData.requestDate 
-        ? new Date(formData.requestDate).toLocaleDateString()
-        : '';
+      // Validation checks
+      if (!formData.employeeName) {
+        alert('Please enter Employee Name');
+        return;
+      }
+      if (!formData.requestorName) {
+        alert('Please enter Requestor Name');
+        return;
+      }
+      if (!formData.requestDate) {
+        alert('Please select Request Date');
+        return;
+      }
+      if (!formData.serviceWeek.start || !formData.serviceWeek.end) {
+        alert('Please select Service Week');
+        return;
+      }
 
-      const serviceWeekFormatted = formData.serviceWeek.start && formData.serviceWeek.end
-        ? `${new Date(formData.serviceWeek.start).toLocaleDateString()} - ${new Date(formData.serviceWeek.end).toLocaleDateString()}`
-        : '';
-
-      // Format schedule data with dates
-      const scheduleData = Object.entries(formData.schedule).map(([day, data]) => ({
-        day,
-        date: getDayDate(day),
-        time: data.time === 'Type in' ? data.customTime : data.time,
-        location: data.location
-      }));
-
-      const requestData = {
-        employeeName: formData.employeeName || '',
-        requestorName: formData.requestorName || '',
-        requestDate: formattedDate,
-        serviceWeek: serviceWeekFormatted,
-        schedule: scheduleData,  // Add schedule data
-        signature: formData.savedSignature || ''
+      // Prepare data for API
+      const previewData = {
+        employeeName: formData.employeeName,
+        requestorName: formData.requestorName,
+        requestDate: formData.requestDate ? new Date(formData.requestDate).toISOString().split('T')[0] : '',
+        serviceWeek: {
+          start: formData.serviceWeek.start,
+          end: formData.serviceWeek.end
+        },
+        schedule: Object.entries(formData.schedule)
+          .filter(([_, data]) => data.time && data.location)
+          .map(([day, data]) => ({
+            day,
+            date: getDayDate(day),
+            time: data.time,
+            location: data.location
+          }))
       };
 
-      console.log('Sending data to API:', requestData);
+      console.log('Sending preview data:', previewData);  // 디버깅용
 
-      const response = await fetch('http://98.81.114.125/generate-pdf', {
+      const response = await fetch('http://127.0.0.1:8000/generate-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(previewData)
       });
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        const errorText = await response.text();
+        console.error('Server response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
       
-      const windowFeatures = 'width=800,height=900,left=200,top=100';
-      window.open(url, 'PreviewWindow', windowFeatures);
+      // Cleanup
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
       console.error('Error generating preview:', error);
+      alert('Error generating PDF preview. Please check if all required fields are filled.');
     }
   };
 

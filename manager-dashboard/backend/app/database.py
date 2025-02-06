@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 # MySQL 접속 정보 (본인 환경에 맞게 수정)
-DATABASE_URL = "mysql+aiomysql://yourusername:yourpassword@localhost/manager_db"
+DATABASE_URL = "mysql+aiomysql://root:rnjs183&RNJS@localhost/manager_db"
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 
