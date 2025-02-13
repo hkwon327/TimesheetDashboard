@@ -130,12 +130,13 @@ const WorkHoursForm = () => {
 
     // Signature validation
     if (!formData.savedSignature) {
-      alert('Please save the supervisor signature before submitting');
+      alert('Please save the signature before submitting');
       return;
     }
 
     // 2. 모든 validation 통과 후 데이터 준비
     const submissionData = {
+      id: "",  // 빈 문자열로 초기화
       employeeName: formData.employeeName,
       requestorName: formData.requestorName,
       requestDate: formData.requestDate.toISOString().split('T')[0],
@@ -176,7 +177,7 @@ const WorkHoursForm = () => {
       const s3Result = await s3Response.json();
       console.log('PDF saved to S3:', s3Result);
 
-      // 2. form 데이터 제출 (S3 URL 포함)
+      // 2. form 데이터 제출 - S3에서 받은 ID 사용
       const response = await fetch('http://44.222.140.196:8000/submit-form', {
         method: 'POST',
         headers: {
@@ -184,7 +185,8 @@ const WorkHoursForm = () => {
         },
         body: JSON.stringify({
           ...submissionData,
-          pdfUrl: s3Result.file_url
+          pdfUrl: s3Result.file_url,
+          id: s3Result.form_id  // S3에서 받은 ID 사용
         })
       });
 
@@ -522,7 +524,7 @@ const WorkHoursForm = () => {
         </div>
 
         <div className="input-group">
-          <label>Supervisor Signature</label>
+          <label>SK ME/SAMKOO Signature</label>
           <div className="signature-container">
             <div className="signature-pad">
               <SignaturePad
