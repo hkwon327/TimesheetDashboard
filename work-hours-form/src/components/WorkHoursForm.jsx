@@ -39,7 +39,8 @@ const WorkHoursForm = () => {
 
   const locationOptions = [
     'BOSK Trailer',
-    'TN',
+    'SAMKOO Trailer',
+    //'TN',
     'N/A',
     //'KY'
   ];
@@ -153,15 +154,38 @@ const WorkHoursForm = () => {
       signature: formData.savedSignature
     };
 
-    console.log('Submitting data:', submissionData);  // 디버깅을 위한 로그
+    console.log('Submitting data:', submissionData);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/submit-form', {
+      // 1. 먼저 S3에 PDF 저장
+      console.log('Saving PDF to S3...');
+      const s3Response = await fetch('http://44.222.140.196:8000/save-to-s3', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(submissionData)
+      });
+
+      if (!s3Response.ok) {
+        const errorText = await s3Response.text();
+        console.error('S3 save error:', errorText);
+        throw new Error('Failed to save PDF to S3');
+      }
+
+      const s3Result = await s3Response.json();
+      console.log('PDF saved to S3:', s3Result);
+
+      // 2. form 데이터 제출 (S3 URL 포함)
+      const response = await fetch('http://44.222.140.196:8000/submit-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...submissionData,
+          pdfUrl: s3Result.file_url
+        })
       });
 
       if (!response.ok) {
@@ -170,7 +194,6 @@ const WorkHoursForm = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
       alert('Form submitted successfully!');
       
       // 4. 폼 초기화 (선택사항)
@@ -253,11 +276,11 @@ const WorkHoursForm = () => {
     setFormData(prev => ({ ...prev, requestDate: date }));
   };
 
-  // Add this helper function to format the date
+  // 날짜를 'MM/DD' 형식으로 변환하는 함수
   const formatDayDate = (baseDate, dayOffset) => {
     const date = new Date(baseDate);
     date.setDate(date.getDate() + dayOffset);
-    return date.toLocaleDateString();
+    return `${date.getMonth() + 1}/${date.getDate()}`; // YYYY 년도 제외
   };
 
   // Add this function to get the day's date
@@ -270,25 +293,24 @@ const WorkHoursForm = () => {
 
   const handlePreview = async () => {
     try {
-      // Validation checks
-      if (!formData.employeeName) {
-        alert('Please enter Employee Name');
+      // 필수 필드 검증
+      if (!formData.employeeName.trim()) {
+        alert('Employee Name is required');
         return;
       }
-      if (!formData.requestorName) {
-        alert('Please enter Requestor Name');
+      if (!formData.requestorName.trim()) {
+        alert('Requestor Name is required');
         return;
       }
       if (!formData.requestDate) {
-        alert('Please select Request Date');
+        alert('Request Date is required');
         return;
       }
       if (!formData.serviceWeek.start || !formData.serviceWeek.end) {
-        alert('Please select Service Week');
+        alert('Service Week dates are required');
         return;
       }
 
-      // Prepare data for API
       const previewData = {
         employeeName: formData.employeeName,
         requestorName: formData.requestorName,
@@ -298,40 +320,65 @@ const WorkHoursForm = () => {
           end: formData.serviceWeek.end
         },
         schedule: Object.entries(formData.schedule)
-          .filter(([_, data]) => data.time && data.location)
           .map(([day, data]) => ({
             day,
             date: getDayDate(day),
-            time: data.time,
-            location: data.location
-          }))
+            time: data.time || '',
+            location: data.location || ''
+          })),
+        signature: formData.savedSignature || null
       };
 
-      console.log('Sending preview data:', previewData);  // 디버깅용
+      console.log('Preview data being sent:', previewData);
+      
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const serverUrl = isMobile 
+        ? 'http://44.222.140.196:8000/generate-pdf'  // EC2 퍼블릭 IP (변경 필요)
+        : 'http://44.222.140.196:8000/generate-pdf';
+        
+      
+      console.log('Device:', isMobile ? 'Mobile' : 'Desktop');
+      console.log('Using server URL:', serverUrl);
 
-      const response = await fetch('http://127.0.0.1:8000/generate-pdf', {
+      const response = await fetch(serverUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/pdf',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify(previewData)
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Server response:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server error:', errorText);
+        throw new Error(`Server error: ${response.status} ${errorText}`);
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      
-      // Cleanup
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      console.log('Received blob:', blob.type, blob.size);
+
+      // 모바일에서는 다운로드 방식으로 처리
+      if (isMobile) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'preview.pdf';  // 다운로드될 파일 이름
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        // 데스크톱에서는 새 창에서 열기
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      }
+
     } catch (error) {
-      console.error('Error generating preview:', error);
-      alert('Error generating PDF preview. Please check if all required fields are filled.');
+      console.error('Error details:', error);
+      console.error('Error stack:', error.stack);
+      alert(`Error generating PDF preview. Please try again.`);
     }
   };
 
@@ -340,8 +387,13 @@ const WorkHoursForm = () => {
   return (
     <div className="form-container">
       <div className="form-header">
-        <h1>Work Hours Request Form</h1>
-        <p className="form-subtitle">Please fill out all required fields</p>
+        <h1>Service Hour Request Form</h1>
+        <div className="form-subtitle">
+          <p>* This form is for the purpose of requesting hourly interpretaion or <br />tranlsation services and for providing evidence of service provision.</p>
+          <p>* This form can contain requests and evidence for one person on a maximum weekly basis.</p>
+          <p>* If the service is provided on an emergency request basis, this document must be signed within<br /> 1 working day afterwards to servce as a basis for future settlemetns.</p>
+          <p>* If you wish to substitute evidence of hourly interpretation and translation services provided with <br />a different form than this one, prior consultation wiht the BOSK interrpetation manager is required.</p>
+        </div>
         <div className="logo-container">
           <img src={logo} alt="Moveret Logo" className="logo" />
           <span className="logo-text">M O V E R E T</span>

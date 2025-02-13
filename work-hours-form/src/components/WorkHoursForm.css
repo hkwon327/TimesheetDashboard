@@ -56,8 +56,19 @@ h1,
 }
 
 .form-subtitle {
-  margin-top: 0;
-  font-size: 0.9rem;
+  margin-top: 1.5rem;
+  font-size: 0.8rem;  /* 전체적으로 폰트 크기 줄임 */
+  font-weight: normal;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+  margin-left: 6rem;
+  margin-right: 6rem;
+}
+
+.form-subtitle p {
+  margin: 0.3rem 0;
+  padding: 0 1rem;
 }
 
 .input-group {
@@ -440,10 +451,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
   h1 {
     font-size: 1.5rem;
+    white-space: nowrap !important;  /* 줄바꿈 방지 */
   }
   
   .form-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.8rem;  /* 모바일에서는 폰트 크기 약간 줄임 */
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .form-subtitle p {
+    margin: 0.3rem 0;  /* 모바일에서는 간격 좀 더 좁게 */
   }
 
   /* Ensure consistent input sizes on mobile */
@@ -562,27 +580,44 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* Mobile responsive design */
 @media screen and (max-width: 768px) {
   body {
-    padding: 0;  /* Remove body padding on mobile */
-    background-color: white;  /* Change background to white on mobile */
+    overflow-x: hidden;  /* 가로 스크롤 방지 */
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   .form-container {
-    width: 100%;
-    margin: 0;
-    padding: 1rem;
-    box-shadow: none;  /* Remove shadow on mobile */
+    width: 100%;  /* 모바일에서의 너비를 85%로 설정 */
+    margin: 0rem auto;
+    padding: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;  /* 컨테이너도 가로 스크롤 방지 */
   }
 
   form {
     width: 100%;
     margin: 0;
-    padding: 1.5rem 1rem;  /* Reduce side padding */
-    border-radius: 35px 35px 0 0;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    overflow-x: hidden;  /* 폼에서도 가로 스크롤 방지 */
   }
 
   .input-group {
     width: 100%;
-    margin: 15px 0;
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
+
+  /* 입력 필드들이 컨테이너를 벗어나지 않도록 설정 */
+  input[type="text"],
+  input[type="week"],
+  input[type="date"],
+  .service-week-display input,
+  .custom-time-input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
   }
 
   /* Adjust input and datepicker styling for mobile */
@@ -600,14 +635,48 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     font-size: 14px;
   }
 
+  @media screen and (max-width: 768px) {  
+    /* DatePicker label 스타일 */
+    .input-group:nth-child(3) .user-label,
+    .input-group:nth-child(4) .user-label {
+      left: 18% !important;
+      font-size: 15px !important;
+    }
+
+    /* input-group 자체의 패딩 제거 */
+    .input-group:nth-child(3),
+    .input-group:nth-child(4) {
+      padding-right: 0 !important;
+      padding-left: 0 !important;
+    }
+
+    /* DatePicker input box와 그 컨테이너 스타일 */
+    .input-group:nth-child(3) .react-datepicker-wrapper,
+    .input-group:nth-child(4) .react-datepicker-wrapper,
+    .input-group:nth-child(3) .react-datepicker__input-container,
+    .input-group:nth-child(4) .react-datepicker__input-container {
+      padding-right: 0 !important;
+      width: 100% !important;
+    }
+
+    /* DatePicker input box 직접 선택 */
+    .input-group:nth-child(3) input,
+    .input-group:nth-child(4) input,
+    .input-group:nth-child(3) .react-datepicker__input-container input,
+    .input-group:nth-child(4) .react-datepicker__input-container input {
+      width: 95% !important;
+      height: 45px !important;
+      padding: 0.5rem 1rem !important;
+      font-size: 15px !important;
+      box-sizing: border-box !important;
+      padding-right: 0 !important;
+    }
+  }
+
   /* Header adjustments */
   h1 {
     font-size: 1.8rem;
     margin-bottom: 0.5rem;
-  }
-
-  .form-subtitle {
-    font-size: 1rem;
   }
 
   .logo-container {
@@ -653,6 +722,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   color: #00d676;
   pointer-events: none;
   font-size: 0.9rem;
+}
+
+@media screen and (max-width: 768px) {
+  .user-label {
+    left: 20%;  /* 라벨 위치를 오른쪽으로 이동 */
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 /* Style for DatePicker container */
