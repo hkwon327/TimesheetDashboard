@@ -13,14 +13,15 @@ export const initialFormData = {
       Thursday: { time: '', location: '', customTime: '' },
       Friday: { time: '', location: '', customTime: '' },
     },
-    supervisorSignature: null,
-    savedSignature: null
+    //supervisorSignature: null,
+    //savedSignature: null
+    signature: null 
   };
   
   export const workingTimeOptions = [
-    'Shift 1: 8:00 AM - 5:00 PM',
-    'Shift 2: 7:00 PM - 1:00 AM',
+    '8:00 AM - 5:00 PM',
+    '7:00 PM - 1:00 AM',
     //'Shift 3: 1:00 AM - 8:00 AM',
+    'OFF',
     'Type in',
-    'Off',
   ];

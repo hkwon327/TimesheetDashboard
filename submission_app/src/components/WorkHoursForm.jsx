@@ -71,7 +71,7 @@ const WorkHoursForm = () => {
   const handleSaveSignature = () => {
     if (signatureRef.current) {
       const signatureData = signatureRef.current.toDataURL();
-      setFormData(prev => ({ ...prev, savedSignature: signatureData }));
+      setFormData(prev => ({ ...prev, signature: signatureData }));
       alert('Signature saved successfully');
     }
   };
@@ -79,7 +79,7 @@ const WorkHoursForm = () => {
   const handleClearSignature = () => {
     if (signatureRef.current) {
       signatureRef.current.clear();
-      setFormData(prev => ({ ...prev, savedSignature: null }));
+      setFormData(prev => ({ ...prev, signature: null }));
     }
   };
 
@@ -96,7 +96,7 @@ const WorkHoursForm = () => {
           time: data.time === 'Type in' ? data.customTime : data.time,
           location: data.location || ''
         })),
-        signature: formData.savedSignature || ''
+        signature: formData.signature || ''
       };
       const blob = await generatePdfPreview(previewData);
       const url = window.URL.createObjectURL(blob);
