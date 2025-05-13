@@ -93,7 +93,7 @@ async def test_s3():
 # generate preview
 @app.post("/generate-pdf")
 async def generate_pdf(form_data: PdfFormData):
-    template_path = "/Users/haeun/Desktop/BOSK/submission_app/public/assets/Form.pdf"  # local path
+    template_path = "/Users/haeun/Desktop/BOSK/submission-app/public/assets/Form.pdf"  # local path
     # template_path = "/home/ubuntu/Form.pdf"  # EC2 path
     pdf_bytes = build_filled_pdf(template_path, form_data)
     return Response(
@@ -122,7 +122,7 @@ async def save_to_s3(form_data: FormData):
         s3_client = get_s3_client()
 
         # PDF 생성 (함수 호출로 간결하게!)
-        template_path = "/Users/haeun/Desktop/BOSK/submission_app/public/assets/Form.pdf"  # local path
+        template_path = "/Users/haeun/Desktop/BOSK/submission-app/public/assets/Form.pdf"  # local path
         # template_path = "/home/ubuntu/Form.pdf"  # EC2 path
         pdf_bytes = build_filled_pdf(template_path, form_data)
 

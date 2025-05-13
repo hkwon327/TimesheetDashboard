@@ -24,7 +24,7 @@ cd BOSK
 uvicorn backend_api.main:app --reload or make run-backend
 
 # 4. Start the frontend
-cd submission_app
+cd submission-app
 npm install
 npm start
 ```
@@ -37,7 +37,7 @@ backend_api/
 ├── utils.py # Utility functions
 └── requirements.txt # Python dependencies
 
-submission_app/
+submission-app/
 ├── public # Static files
     ├── assets # Images, icons, etc.
     ├── index.html # HTML template
