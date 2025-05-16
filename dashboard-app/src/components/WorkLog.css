@@ -1,0 +1,32 @@
+.worklog-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .detail-section {
+    display: flex;
+    gap: 30px;
+    justify-content: space-between;
+  }
+  
+  .work-details, .timesheet-preview, .summary-section {
+    flex: 1;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.05);
+  }
+  
+  .summary-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  

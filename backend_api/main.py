@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 #from starlette.requests import Request  # 현재 사용되지 않음
 #from starlette.responses import FileResponse  # 현재 사용되지 않음
+from psycopg2.extras import RealDictCursor
 
 
 from fastapi import APIRouter
@@ -215,5 +216,51 @@ async def submit_form(form_data: FormData):
     except Exception as e:
         print("DB insert error:", str(e))
         raise HTTPException(status_code=500, detail="Failed to save data to database.")
+
+
+@app.get("/forms")
+async def get_forms():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute("""
+        SELECT
+            f.id,
+            f.employee_name,
+            f.requestor_name,
+            f.request_date,
+            f.service_week_start,
+            f.service_week_end,
+            f.is_submit,
+            f.status
+        FROM forms f
+        ORDER BY f.request_date DESC;
+    """)
+
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return rows
+
+
+
+
+@app.get("/form/{form_id}")
+async def get_form_with_schedule(form_id: str):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)  # ✅ 반드시 이렇게
+
+    cur.execute("SELECT * FROM forms WHERE id = %s", (form_id,))
+    form = cur.fetchone()
+
+    cur.execute("SELECT day, time, location FROM form_schedule WHERE form_id = %s", (form_id,))
+    schedule = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return {"form": form, "schedule": schedule}
 
 

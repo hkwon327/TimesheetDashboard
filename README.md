@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 # 3. Start the FastAPI server
 cd BOSK
-uvicorn backend_api.main:app --reload or make run-backend
+uvicorn backend_api.main:app --reload or make run-api
 
 # 4. Start the frontend
 cd submission-app
