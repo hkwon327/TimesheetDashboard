@@ -10,14 +10,13 @@ class StatusEnum(str, Enum):
     deleted = "deleted"
     confirmed = "confirmed"
 
-
 # 개별 스케줄 항목
 class ScheduleItem(BaseModel):
     day: str  # 포맷: MM/DD/요일
     time: str
     location: str
 
-# Pdf용 출력 모델 (간단히 말해 FormData에서 id, isSubmit, status 제외)
+# Pdf용 출력 모델 (FormData에서 id, isSubmit, status 제외)
 class PdfFormData(BaseModel):
     employeeName: str
     requestorName: str
@@ -25,7 +24,6 @@ class PdfFormData(BaseModel):
     serviceWeek: Dict[str, str]
     schedule: List[ScheduleItem]
     signature: str
-
 
 # 날짜 포맷 정규화 함수
 def convert_date_format(date_str: str) -> str:
@@ -121,142 +119,3 @@ class FormData(BaseModel):
                 "status": "pending"
             }
         }
-
-
-
-########################################################################################
-
-
-
-# class StatusEnum(str, Enum):
-#     pending = "pending"
-#     approved = "approved"
-#     deleted = "deleted"
-#     confirmed = "confirmed"
-
-
-# class ScheduleItem(BaseModel):
-#     day: str
-#     time: str
-#     location: str
-
-
-# class ServiceWeek(BaseModel):
-#     start: str
-#     end: str
-
-
-# class FormIdsRequest(BaseModel):
-#     form_ids: List[str]
-
-
-# class FormData(BaseModel):
-#     id: Optional[str] = None  # ✅ 선택 필드로 변경
-#     employeeName: str = Field(..., min_length=1)
-#     requestorName: str = Field(..., min_length=1)
-#     requestDate: str
-#     serviceWeek: Dict[str, str]
-#     schedule: List[Dict[str, str]]
-#     signature: Optional[str] = None
-#     isSubmit: Optional[bool] = False
-
-
-# class FormData(BaseModel):
-#     id: Optional[str] = None  # 서버에서 UUID로 생성
-#     employeeName: str = Field(..., min_length=1)
-#     requestorName: str = Field(..., min_length=1)
-#     requestDate: str
-#     serviceWeek: Dict[str, str]
-#     schedule: List[ScheduleItem]
-#     signature: Optional[str] = None
-#     isSubmit: Optional[bool] = False
-#     status: StatusEnum = StatusEnum.pending  # 기본값 "pending"
-
-#     class Config:
-#         json_schema_extra = {
-#             "example": {
-#                 "employeeName": "John Doe",
-#                 "requestorName": "Jane Smith",
-#                 "requestDate": "03/20/2024",
-#                 "serviceWeek": {
-#                     "start": "03/20/2024",
-#                     "end": "03/24/2024"
-#                 },
-#                 "schedule": [
-#                     {
-#                         "day": "03/20/Monday",
-#                         "date": "03/20/2024",
-#                         "time": "8:00 AM - 5:00 PM",
-#                         "location": "BOSK Trailer"
-#                     }
-#                 ],
-#                 "signature": "data:image/png;base64,...",
-#                 "isSubmit": True
-#             }
-#         }
-
-
-#     class Config:
-#         json_schema_extra = {
-#             "example": {
-#                 "employeeName": "John Doe",
-#                 "requestorName": "Jane Smith",
-#                 "requestDate": "03/20/2024",
-#                 "serviceWeek": {
-#                     "start": "03/20/2024",
-#                     "end": "03/24/2024"
-#                 },
-#                 "schedule": [
-#                     {
-#                         "day": "03/20/Monday",
-#                         "time": "8:00 AM - 5:00 PM",
-#                         "location": "BOSK Trailer"
-#                     }
-#                 ],
-#                 "signature": "data:image/png;base64,...",
-#                 "isSubmit": True
-#             }
-#         }
-
-
-#     def format_schedule_days(self):
-#         """날짜 형식을 MM/DD/DAY 로 변환"""
-#         for item in self.schedule:
-#             if 'date' in item and 'day' in item:
-#                 try:
-#                     date_str = convert_date_format(item['date'])
-#                     date_obj = datetime.strptime(date_str, '%m/%d/%Y')
-#                     item['day'] = f"{date_obj.strftime('%m/%d')}/{item['day'].split('/')[-1] if '/' in item['day'] else item['day']}"
-#                     item['date'] = date_str
-#                 except ValueError:
-#                     continue
-
-#         if isinstance(self.serviceWeek, dict):
-#             if 'start' in self.serviceWeek:
-#                 self.serviceWeek['start'] = convert_date_format(self.serviceWeek['start'])
-#             if 'end' in self.serviceWeek:
-#                 self.serviceWeek['end'] = convert_date_format(self.serviceWeek['end'])
-
-#         if self.requestDate:
-#             self.requestDate = convert_date_format(self.requestDate)
-
-#     def __init__(self, **data):
-#         super().__init__(**data)
-#         self.format_schedule_days()
-
-
-
-# # 날짜 형식 변환 유틸 함수
-# def convert_date_format(date_str: str) -> str:
-#     """다양한 날짜 형식을 MM/DD/YYYY 로 변환"""
-#     if date_str and len(date_str.split('/')) == 2:
-#         current_year = datetime.now().year
-#         date_str = f"{date_str}/{current_year}"
-
-#     formats = ['%m/%d/%Y', '%m-%d-%Y', '%Y-%m-%d', '%Y/%m/%d']
-#     for fmt in formats:
-#         try:
-#             return datetime.strptime(date_str, fmt).strftime('%m/%d/%Y')
-#         except ValueError:
-#             continue
-#     return date_str

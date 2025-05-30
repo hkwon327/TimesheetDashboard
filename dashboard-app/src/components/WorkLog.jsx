@@ -14,18 +14,33 @@ ChartJS.register(BarElement, CategoryScale, LinearScale);
 
 const WorkLog = ({ selectedFormId }) => {
   const { formId: paramFormId } = useParams();
-  const formId = paramFormId || selectedFormId;
+  const storedFormId = localStorage.getItem("lastFormId");
+  const formId = paramFormId || selectedFormId || storedFormId;
 
   const [formInfo, setFormInfo] = useState(null);
   const [schedule, setSchedule] = useState([]);
+  const [pdfUrl, setPdfUrl] = useState(null);
 
   useEffect(() => {
     if (!formId) return;
+
+    // 1. Form 데이터 로드
     axios
       .get(`http://localhost:8000/form/${formId}`)
       .then((res) => {
         setFormInfo(res.data.form);
         setSchedule(res.data.schedule);
+
+        // 2. PDF Presigned URL 요청 (pdf_filename 사용)
+        const filename = res.data.form?.pdf_filename;
+        if (filename) {
+          axios
+            .get(`http://localhost:8000/form-pdf-url/${filename}`)
+            .then((res) => {
+              setPdfUrl(res.data.url);
+            })
+            .catch((err) => console.error("Error loading PDF URL:", err));
+        }
       })
       .catch((err) => console.error("Error loading worklog:", err));
   }, [formId]);
@@ -73,41 +88,56 @@ const WorkLog = ({ selectedFormId }) => {
       </div>
 
       <div className="detail-section">
-        <div className="work-details">
-          <h3>Detailed Work Hours</h3>
-          <div className="header-row">
-            <span>{formInfo.employee_name}</span>
-            <span>{formInfo.request_date?.slice(0, 10)}</span>
-            <span>{formInfo.status}</span>
+        {/* 왼쪽: 상세 정보 + 요약 */}
+        <div className="left-section">
+          <div className="work-details">
+            <h3>Detailed Work Hours</h3>
+            <div className="header-row">
+              <span>{formInfo.employee_name}</span>
+              <span>{formInfo.request_date?.slice(0, 10)}</span>
+              <span>{formInfo.status}</span>
+            </div>
+            <table>
+              <tbody>
+                {schedule.map((item, i) => (
+                  <tr key={i}>
+                    <td>{item.day}</td>
+                    <td>{item.time}</td>
+                    <td>{item.location}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <table>
-            <tbody>
-              {schedule.map((item, i) => (
-                <tr key={i}>
-                  <td>{item.day}</td>
-                  <td>{item.time}</td>
-                  <td>{item.location}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+          <div className="summary-section">
+            <h3>Summary</h3>
+            <div className="summary-box">
+              <div className="chart-box">
+                <Bar data={data} options={options} />
+              </div>
+              <div className="summary-text">
+                <p><strong>Total Hours:</strong> {schedule.length * 8} hrs</p>
+                <p><strong>Missed Day:</strong> 0 days</p>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* 오른쪽: PDF 미리보기 */}
         <div className="timesheet-preview">
           <h3>View Submitted Timesheet</h3>
-          <div className="empty-preview">[Timesheet Preview Placeholder]</div>
-        </div>
-      </div>
-
-      <div className="summary-section">
-        <h3>Summary</h3>
-        <div className="summary-box">
-          <div className="chart-box">
-            <Bar data={data} options={options} />
-          </div>
-          <div className="summary-text">
-            <p><strong>Total Hours:</strong> {schedule.length * 8} hrs</p>
-            <p><strong>Missed Day:</strong> 0 days</p>
+          <div className="empty-preview">
+            {pdfUrl ? (
+              <iframe
+                src={pdfUrl}
+                width="100%"
+                height="600px"
+                title="PDF Preview"
+              />
+            ) : (
+              <p>Loading PDF preview...</p>
+            )}
           </div>
         </div>
       </div>

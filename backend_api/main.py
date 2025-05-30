@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-#from starlette.requests import Request  # 현재 사용되지 않음
-#from starlette.responses import FileResponse  # 현재 사용되지 않음
+
 from psycopg2.extras import RealDictCursor
 
 
@@ -11,14 +10,14 @@ from uuid import uuid4
 
 from backend_api.models import FormData, PdfFormData
 from botocore.exceptions import ClientError
-from backend_api.utils import upload_pdf_to_s3, parse_date, get_s3_client, build_filled_pdf
+from backend_api.utils import get_s3_client, build_filled_pdf
 
 from db.connection import get_db_connection
 
 import uuid  # 현재 사용되지 않음
 from datetime import datetime
 from psycopg2.extras import Json
-# import pymysql  # 현재 사용되지 않음
+
 
 import logging
 
@@ -40,23 +39,6 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["Content-Disposition"]
 )
-
-
-# from fastapi.exceptions import RequestValidationError
-# from fastapi.responses import JSONResponse
-# from fastapi import Request
-
-# @app.exception_handler(RequestValidationError)
-# async def validation_exception_handler(request: Request, exc: RequestValidationError):
-#     print("🔴 Validation Error:")
-#     print(exc.errors())     # 어떤 필드가 문제인지 출력
-#     print("🔵 Request Body:")
-#     print(exc.body)         # 실제 요청된 JSON도 출력
-#     return JSONResponse(
-#         status_code=422,
-#         content={"detail": exc.errors(), "body": exc.body},
-#     )
-
 
 
 
@@ -107,27 +89,136 @@ async def generate_pdf(form_data: PdfFormData):
     )
 
 
-# submit form
-# 1. save pdf to s3
-# 2. save form data to db
-@app.post("/save-to-s3")
-async def save_to_s3(form_data: FormData):
+# # submit form
+# # 1. save pdf to s3
+# # 2. save form data to db
+# @app.post("/save-to-s3")
+# async def save_to_s3(form_data: FormData):
+#     try:
+#         print("Starting save_to_s3 function...")
+
+#         # id가 없으면 생성
+#         if not form_data.id:
+#             form_data.id = str(uuid.uuid4())
+
+#         filename = f"{form_data.employeeName}_{form_data.id}.pdf"
+#         s3_client = get_s3_client()
+
+#         # PDF 생성 (함수 호출로 간결하게!)
+#         template_path = "/Users/haeun/Desktop/BOSK/submission-app/public/assets/Form.pdf"  # local path
+#         # template_path = "/home/ubuntu/Form.pdf"  # EC2 path
+#         pdf_bytes = build_filled_pdf(template_path, form_data)
+
+#         # S3 업로드
+#         s3_client.put_object(
+#             Bucket='bosk-pdf',
+#             Key=f"work-hours-forms/{filename}",
+#             Body=pdf_bytes,
+#             ContentType='application/pdf'
+#         )
+
+#         s3_url = f"https://bosk-pdf.s3.amazonaws.com/work-hours-forms/{filename}"
+#         print(f"S3 URL: {s3_url}")
+#         print(f"Form ID: {form_data.id}")
+#         print(f"S3 Filename: {filename}")
+
+#         return {
+#             "message": "PDF saved to S3 successfully",
+#             "file_url": s3_url,
+#             "form_id": form_data.id,
+#             "s3_filename": filename
+#         }
+
+#     except ClientError as e:
+#         print(f"AWS S3 Error: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"S3 error: {str(e)}")
+#     except Exception as e:
+#         print(f"Unexpected error: {str(e)}")
+#         import traceback
+#         print(traceback.format_exc())
+#         raise HTTPException(status_code=500, detail=str(e))
+    
+
+# @app.post("/submit-form")
+# async def submit_form(form_data: FormData):
+#     try:
+#         conn = get_db_connection()
+#         cur = conn.cursor()
+
+#         # 1️⃣ UUID 생성
+#         form_id = form_data.id
+
+#         # 2️⃣ forms 테이블 INSERT
+#         cur.execute("""
+#             INSERT INTO forms (
+#                 id,
+#                 employee_name,
+#                 requestor_name,
+#                 request_date,
+#                 service_week_start,
+#                 service_week_end,
+#                 signature,
+#                 is_submit,
+#                 status
+#             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+#         """, (
+#             form_id,
+#             form_data.employeeName,
+#             form_data.requestorName,
+#             datetime.strptime(form_data.requestDate, "%m/%d/%Y"),
+#             datetime.strptime(form_data.serviceWeek["start"], "%m/%d/%Y"),
+#             datetime.strptime(form_data.serviceWeek["end"], "%m/%d/%Y"),
+#             form_data.signature[:15],
+#             form_data.isSubmit,
+#             form_data.status.value
+#         ))
+
+#         # 3️⃣ schedule 테이블에 각 항목 INSERT
+#         for item in form_data.schedule:
+#             cur.execute("""
+#                 INSERT INTO form_schedule (
+#                     form_id,
+#                     day,
+#                     time,
+#                     location
+#                 ) VALUES (%s, %s, %s, %s)
+#             """, (
+#                 form_id,
+#                 item.day,
+#                 item.time,
+#                 item.location
+#             ))
+
+#         conn.commit()
+#         cur.close()
+#         conn.close()
+
+#         return {"message": "Form data saved successfully", "id": form_id}
+
+#     except Exception as e:
+#         return {"error": str(e)}
+
+#     except Exception as e:
+#         print("DB insert error:", str(e))
+#         raise HTTPException(status_code=500, detail="Failed to save data to database.")
+
+
+@app.post("/submit-form")
+async def submit_form(form_data: FormData):
     try:
-        print("Starting save_to_s3 function...")
-
-        # id가 없으면 생성
+        # ✅ ID 생성 (없으면 새로)
         if not form_data.id:
-            form_data.id = str(uuid.uuid4())
+            form_data.id = str(uuid4())
 
-        filename = f"{form_data.employeeName}_{form_data.id}.pdf"
+        form_id = form_data.id
+        filename = f"{form_data.employeeName}_{form_id}.pdf"
         s3_client = get_s3_client()
 
-        # PDF 생성 (함수 호출로 간결하게!)
-        template_path = "/Users/haeun/Desktop/BOSK/submission-app/public/assets/Form.pdf"  # local path
-        # template_path = "/home/ubuntu/Form.pdf"  # EC2 path
+        # ✅ PDF 생성
+        template_path = "/Users/haeun/Desktop/BOSK/submission-app/public/assets/Form.pdf"
         pdf_bytes = build_filled_pdf(template_path, form_data)
 
-        # S3 업로드
+        # ✅ S3 업로드
         s3_client.put_object(
             Bucket='bosk-pdf',
             Key=f"work-hours-forms/{filename}",
@@ -135,35 +226,11 @@ async def save_to_s3(form_data: FormData):
             ContentType='application/pdf'
         )
 
-        s3_url = f"https://bosk-pdf.s3.amazonaws.com/work-hours-forms/{filename}"
-        print(f"S3 URL: {s3_url}")
-
-        return {
-            "message": "PDF saved to S3 successfully",
-            "file_url": s3_url,
-            "form_id": form_data.id
-        }
-
-    except ClientError as e:
-        print(f"AWS S3 Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"S3 error: {str(e)}")
-    except Exception as e:
-        print(f"Unexpected error: {str(e)}")
-        import traceback
-        print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
-    
-
-@app.post("/submit-form")
-async def submit_form(form_data: FormData):
-    try:
+        # ✅ DB 저장
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # 1️⃣ UUID 생성
-        form_id = form_data.id or str(uuid4())
-
-        # 2️⃣ forms 테이블 INSERT
+        now = datetime.utcnow()
         cur.execute("""
             INSERT INTO forms (
                 id,
@@ -174,8 +241,11 @@ async def submit_form(form_data: FormData):
                 service_week_end,
                 signature,
                 is_submit,
-                status
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                status,
+                created_date,
+                created_time,
+                pdf_filename
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             form_id,
             form_data.employeeName,
@@ -185,18 +255,16 @@ async def submit_form(form_data: FormData):
             datetime.strptime(form_data.serviceWeek["end"], "%m/%d/%Y"),
             form_data.signature[:15],
             form_data.isSubmit,
-            form_data.status.value
+            form_data.status.value,
+            now.date(),
+            now.time(),
+            filename
         ))
 
-        # 3️⃣ schedule 테이블에 각 항목 INSERT
         for item in form_data.schedule:
             cur.execute("""
-                INSERT INTO form_schedule (
-                    form_id,
-                    day,
-                    time,
-                    location
-                ) VALUES (%s, %s, %s, %s)
+                INSERT INTO form_schedule (form_id, day, time, location)
+                VALUES (%s, %s, %s, %s)
             """, (
                 form_id,
                 item.day,
@@ -208,14 +276,21 @@ async def submit_form(form_data: FormData):
         cur.close()
         conn.close()
 
-        return {"message": "Form data saved successfully", "id": form_id}
+        return {
+            "message": "Form saved to S3 and DB",
+            "form_id": form_id,
+            "s3_filename": filename,
+            "pdf_url": f"https://bosk-pdf.s3.amazonaws.com/work-hours-forms/{filename}",
+            "created_date": now.date(),
+            "created_time": now.time()
+        }
 
+    except ClientError as e:
+        raise HTTPException(status_code=500, detail=f"S3 error: {str(e)}")
     except Exception as e:
-        return {"error": str(e)}
-
-    except Exception as e:
-        print("DB insert error:", str(e))
-        raise HTTPException(status_code=500, detail="Failed to save data to database.")
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/forms")
@@ -225,24 +300,26 @@ async def get_forms():
 
     cur.execute("""
         SELECT
-            f.id,
-            f.employee_name,
-            f.requestor_name,
-            f.request_date,
-            f.service_week_start,
-            f.service_week_end,
-            f.is_submit,
-            f.status
-        FROM forms f
-        ORDER BY f.request_date DESC;
+            id,
+            employee_name,
+            requestor_name,
+            request_date,
+            service_week_start,
+            service_week_end,
+            is_submit,
+            status,
+            created_date,
+            created_time,
+            pdf_filename
+        FROM forms
+        ORDER BY request_date DESC;
     """)
 
     rows = cur.fetchall()
-
     cur.close()
     conn.close()
-
     return rows
+
 
 
 
@@ -262,5 +339,23 @@ async def get_form_with_schedule(form_id: str):
     conn.close()
 
     return {"form": form, "schedule": schedule}
+
+
+from urllib.parse import unquote
+
+@app.get("/form-pdf-url/{pdf_filename}")
+def get_pdf_presigned_url(pdf_filename: str):
+    s3_client = get_s3_client()
+    key = f"work-hours-forms/{unquote(pdf_filename).strip()}"
+    
+    try:
+        url = s3_client.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={"Bucket": "bosk-pdf", "Key": key},
+            ExpiresIn=600  # 10분 유효
+        )
+        return {"url": url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating S3 URL: {e}")
 
 

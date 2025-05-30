@@ -55,21 +55,3 @@ submission-app/
 
 ## 🔑 API Endpoints
 
-### POST /submit-form
-
-Submit a new timesheet form.
-<!-- 
-Request Body:
-
-json
-{
-"employeeName": "John Doe",
-"requestorName": "Jane Smith",
-"requestDate": "2023-01-01",
-"serviceWeek": {"start": "2023-01-01", "end": "2023-01-07"},
-"schedule": [{"day": "2023-01-01", "time": "09:00-18:00", "location": "Office"}]
-}
-
-Response:
-
-json -->

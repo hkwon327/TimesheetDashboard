@@ -22,6 +22,7 @@ const Dashboard = () => {
   const confirmedCount = forms.filter(f => f.status === "confirmed").length;
 
   const handleTabClick = (tab) => setActiveTab(tab);
+
   const toggleSelect = (index) => {
     setSelected((prev) =>
       prev.includes(index)
@@ -31,6 +32,7 @@ const Dashboard = () => {
   };
 
   const handleRowClick = (formId) => {
+    localStorage.setItem("lastFormId", formId);
     navigate(`/worklog/${formId}`);
   };
 
@@ -121,12 +123,8 @@ const Dashboard = () => {
                     {form.service_week_start?.slice(0, 10)} ~{" "}
                     {form.service_week_end?.slice(0, 10)}
                   </td>
-                  <td>{form.schedule?.length * 8 || 0}</td>
-                  <td>
-                    {form.signature?.startsWith("data:image/")
-                      ? "Valid"
-                      : "Invalid"}
-                  </td>
+                  <td>{form.total_hours || 0}</td>
+                  <td>{form.signature?.startsWith("data:image/") ? "InValid" : "Valid"}</td>
                 </tr>
               ))}
           </tbody>
