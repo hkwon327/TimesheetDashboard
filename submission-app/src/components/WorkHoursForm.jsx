@@ -158,21 +158,41 @@ const WorkHoursForm = () => {
           <label className="user-label">Requestor Name</label>
         </div>
 
-        <div className="input-group">
+        <div className="input-group" style={{ position: 'relative' }}>
           <label className="user-label">Request Date</label>
           <DatePicker
             selected={formData.requestDate}
             onChange={(date) => setFormData(prev => ({ ...prev, requestDate: date }))}
             className="input"
-            popperPlacement="bottom"
+            popperPlacement="top"
             shouldCloseOnSelect={true}
             open={isRequestDateOpen}
             onCalendarOpen={() => setIsRequestDateOpen(true)}
             onCalendarClose={() => setIsRequestDateOpen(false)}
+            formatWeekDay={(nameOfDay) => nameOfDay.substr(0, 1)} // 요일을 한글자로 표시
+            popperModifiers={{
+              offset: {
+                enabled: true,
+                offset: '0px, -10px'
+              },
+              preventOverflow: {
+                enabled: false
+              }
+            }}
+            calendarContainer={({ children }) => (
+              <div style={{ 
+                position: 'absolute', 
+                top: '10px',
+                left: '300px',
+                zIndex: 9999 
+              }}>
+                {children}
+              </div>
+            )}
           />
         </div>
 
-        <div className="input-group">
+        <div className="input-group" style={{ position: 'relative' }}>
           <label className="user-label">Service Week</label>
           <DatePicker
             selected={formData.serviceWeek.start ? new Date(formData.serviceWeek.start) : null}
@@ -183,6 +203,23 @@ const WorkHoursForm = () => {
             open={isServiceWeekOpen}
             onCalendarOpen={() => setIsServiceWeekOpen(true)}
             onCalendarClose={() => setIsServiceWeekOpen(false)}
+            formatWeekDay={(nameOfDay) => nameOfDay.substr(0, 1)} // 요일을 한글자로 표시
+            popperModifiers={{
+              offset: {
+                enabled: true,
+                offset: '0px, 10px'
+              }
+            }}
+            calendarContainer={({ children }) => (
+              <div style={{ 
+                position: 'absolute', 
+                top: '-20px',
+                left: '300px',
+                zIndex: 9999 
+              }}>
+                {children}
+              </div>
+            )}
           />
         </div>
 
@@ -208,7 +245,7 @@ const WorkHoursForm = () => {
                     onChange={(e) => handleInputChange(day, 'customTime', e.target.value)}
                   />
                   {customTimeWarnings[day] && (
-                    <div style={{ color: 'red', fontSize: '0.8rem' }}>
+                    <div style={{ color: 'gray', fontSize: '0.8rem', marginLeft: '20px' }}>
                       Please use format like "10:00-18:00"
                     </div>
                   )}
@@ -246,15 +283,29 @@ const WorkHoursForm = () => {
               canvasProps={{ className: 'signature-pad' }}
             />
             <div className="signature-buttons">
-              <button className="signature-button save-button" onClick={handleSaveSignature} type="button">Save Signature</button>
-              <button className="signature-button clear-button" onClick={handleClearSignature} type="button">Clear Signature</button>
+              <button className="signature-button save-button" onClick={handleSaveSignature} type="button">Save</button>
+              <button className="signature-button clear-button" onClick={handleClearSignature} type="button">Clear</button>
             </div>
           </div>
         </div>
 
         <div className="form-buttons">
-          <button className="preview-button" type="button" onClick={handlePreview}>Preview</button>
-          <button className="submit-button" type="submit">Submit</button>
+          <button className="preview-button" type="button" onClick={handlePreview}>
+            <span className="circle1"></span>
+            <span className="circle2"></span>
+            <span className="circle3"></span>
+            <span className="circle4"></span>
+            <span className="circle5"></span>
+            <span className="text">Preview</span>
+          </button>
+          <button className="submit-button" type="submit">
+            <span className="circle1"></span>
+            <span className="circle2"></span>
+            <span className="circle3"></span>
+            <span className="circle4"></span>
+            <span className="circle5"></span>
+            <span className="text">Submit</span>
+          </button>
         </div>
       </form>
     </div>

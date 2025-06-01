@@ -1,149 +1,212 @@
 .dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
+  display: flex;
+ flex-direction: column;
+ gap: 30px;
   }
-  
-  /* 지역 탭 (Tennessee / Kentucky) */
-  .tabs {
-    display: flex;
-    gap: 10px;
+ /* 지역 탭 (Tennessee / Kentucky) */
+ .tabs {
+ display: flex;
+ gap: 10px;
   }
-  
-  .tab {
-    padding: 10px 20px;
-    border: 1px solid #ccc;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background 0.2s ease;
+ .tab {
+ padding: 10px 20px;
+ border: 1px solid #ccc;
+ background: white;
+ border-radius: 8px;
+ cursor: pointer;
+ font-weight: 500;
+ transition: background 0.2s ease;
   }
-  
-  .tab.active {
-    background: #3d4df3;
-    color: white;
-    border-color: #3d4df3;
+ .tab.active {
+ background: #3d4df3;
+ color: white;
+ border-color: #3d4df3;
   }
-  
-  /* 상태 카드 = 필터 탭 역할까지 포함 */
-  .status-cards {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
+ /* 상태 카드 = 필터 탭 역할까지 포함 */
+ .status-cards {
+ display: flex;
+ justify-content: space-between;
+ gap: 20px;
   }
-  
-  .card {
-    flex: 1;
-    padding: 16px;
-    border-radius: 12px;
-    background-color: #ffffff;
-    font-weight: bold;
-    text-align: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
+ .card {
+ flex: 1;
+ padding: 16px;
+ border-radius: 12px;
+ background-color: #ffffff;
+ font-weight: bold;
+ text-align: center;
+ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+ cursor: pointer;
+ border: 2px solid transparent;
+ transition: all 0.2s ease;
   }
-  
-  .card.pending {
-    color: #f97316; /* orange */
+ .card.pending {
+ color: #f97316; /* orange */
   }
-  .card.approved {
-    color: #3b82f6; /* blue */
+ .card.approved {
+ color: #3b82f6; /* blue */
   }
-  .card.confirmed {
-    color: #ef4444; /* red */
+ .card.confirmed {
+ color: #ef4444; /* red */
   }
-  .card.total {
-    color: #10b981; /* green */
-    cursor: default; /* Total은 클릭 불가 */
+ .card.total {
+ color: #10b981; /* green */
+ cursor: default; /* Total은 클릭 불가 */
   }
-  
-  /* 선택된 카드 강조 */
-  .card.active {
-    border-color: #3d4df3;
-    background-color: #eef2ff;
+ /* 선택된 카드 강조 */
+ .card.active {
+ border-color: #3d4df3;
+ background-color: #eef2ff;
   }
-  
-  /* 테이블 영역 */
-  .table-section {
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.04);
+ /* 테이블 영역 */
+ .table-section {
+ background: #fff;
+ padding: 20px;
+ border-radius: 12px;
+ box-shadow: 0 0 6px rgba(0, 0, 0, 0.04);
   }
-  
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-weight: bold;
+ .table-header {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-bottom: 10px;
+ font-weight: bold;
   }
-  
-  .select-all {
-    color: #3d4df3;
-    cursor: pointer;
+ 
+ .table-header-left {
+ display: flex;
+ align-items: center;
+ gap: 15px;
+ }
+ 
+ .select-all {
+ color: #3d4df3;
+ cursor: pointer;
   }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 16px;
+ 
+ /* Toggle Switch Styles */
+ .switch {
+  --button-width: 3.5em;
+  --button-height: 2em;
+  --toggle-diameter: 1.5em;
+  --button-toggle-offset: calc((var(--button-height) - var(--toggle-diameter)) / 2);
+  --toggle-shadow-offset: 10px;
+  --toggle-wider: 3em;
+  --color-grey: #cccccc;
+  --color-green: #4296f4;
+ }
+ 
+ .slider {
+  display: inline-block;
+  width: var(--button-width);
+  height: var(--button-height);
+  background-color: var(--color-grey);
+  border-radius: calc(var(--button-height) / 2);
+  position: relative;
+  transition: 0.3s all ease-in-out;
+ }
+ 
+ .slider::after {
+  content: "";
+  display: inline-block;
+  width: var(--toggle-diameter);
+  height: var(--toggle-diameter);
+  background-color: #fff;
+  border-radius: calc(var(--toggle-diameter) / 2);
+  position: absolute;
+  top: var(--button-toggle-offset);
+  transform: translateX(var(--button-toggle-offset));
+  box-shadow: var(--toggle-shadow-offset) 0 calc(var(--toggle-shadow-offset) * 4) rgba(0, 0, 0, 0.1);
+  transition: 0.3s all ease-in-out;
+ }
+ 
+ .switch input[type="checkbox"]:checked + .slider {
+  background-color: var(--color-green);
+ }
+ 
+ .switch input[type="checkbox"]:checked + .slider::after {
+  transform: translateX(calc(var(--button-width) - var(--toggle-diameter) - var(--button-toggle-offset)));
+  box-shadow: calc(var(--toggle-shadow-offset) * -1) 0 calc(var(--toggle-shadow-offset) * 4) rgba(0, 0, 0, 0.1);
+ }
+ 
+ .switch input[type="checkbox"] {
+  display: none;
+ }
+ 
+ .switch input[type="checkbox"]:active + .slider::after {
+  width: var(--toggle-wider);
+ }
+ 
+ .switch input[type="checkbox"]:checked:active + .slider::after {
+  transform: translateX(calc(var(--button-width) - var(--toggle-wider) - var(--button-toggle-offset)));
+ }
+ table {
+ width: 100%;
+ border-collapse: collapse;
+ margin-bottom: 16px;
   }
-  
-  table th,
-  table td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
+ table th,
+ table td {
+ padding: 10px 12px;
+ text-align: left;
+ border-bottom: 1px solid #eee;
   }
-  
-  .pagination {
-    display: flex;
-    justify-content: center;
-    gap: 5px;
+ 
+ /* 테이블 행 hover 효과 - 클릭 가능함을 시각적으로 표현 */
+ table tbody tr {
+ cursor: pointer;
+ transition: all 0.2s ease;
+ }
+ 
+ table tbody tr:hover {
+ background-color: #e9e9e985; /* 연한 파란색 배경 */
+ color: #3d4df3; /* 파란색 텍스트 */
+ transform: translateY(-1px); /* 살짝 위로 올라가는 효과 */
+ box-shadow: 0 2px 8px rgba(61, 77, 243, 0.15); /* 파란색 그림자 */
+ }
+ 
+ /* 체크박스가 있는 첫 번째 컬럼은 hover 효과에서 제외 */
+ table tbody tr:hover td:first-child {
+ color: inherit; /* 체크박스 색상은 원래대로 */
+ }
+ 
+ .pagination {
+ display: flex;
+ justify-content: center;
+ gap: 5px;
   }
-  
-  .pagination button {
-    padding: 6px 12px;
-    border: none;
-    background: #eee;
-    border-radius: 6px;
-    cursor: pointer;
+ .pagination button {
+ padding: 6px 12px;
+ border: none;
+ background: #eee;
+ border-radius: 6px;
+ cursor: pointer;
   }
-  
-  .pagination .active {
-    background: #3d4df3;
-    color: white;
+ .pagination .active {
+ background: #3d4df3;
+ color: white;
   }
-  
-  /* 하단 버튼 */
-  .action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+ /* 하단 버튼 */
+ .action-buttons {
+ display: flex;
+ justify-content: flex-end;
+ gap: 12px;
   }
-  
-  .action-buttons button {
-    padding: 10px 24px;
-    border-radius: 8px;
-    border: none;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
+ .action-buttons button {
+ padding: 10px 24px;
+ border-radius: 8px;
+ border: none;
+ color: white;
+ font-weight: bold;
+ cursor: pointer;
+ font-size: 14px;
   }
-  
-  button.delete {
-    background-color: #ef4444;
+ button.delete {
+ background-color: #ef4444;
   }
-  
-  button.approve {
-    background-color: #3b82f6;
+ button.approve {
+ background-color: #3b82f6;
   }
-  
-  button.send {
-    background-color: #10b981;
+ button.send {
+ background-color: #10b981;
   }
-  

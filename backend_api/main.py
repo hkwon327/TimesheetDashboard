@@ -17,6 +17,7 @@ from db.connection import get_db_connection
 import uuid  # 현재 사용되지 않음
 from datetime import datetime
 from psycopg2.extras import Json
+from urllib.parse import unquote
 
 
 import logging
@@ -87,120 +88,6 @@ async def generate_pdf(form_data: PdfFormData):
             "Access-Control-Allow-Origin": "*"
         }
     )
-
-
-# # submit form
-# # 1. save pdf to s3
-# # 2. save form data to db
-# @app.post("/save-to-s3")
-# async def save_to_s3(form_data: FormData):
-#     try:
-#         print("Starting save_to_s3 function...")
-
-#         # id가 없으면 생성
-#         if not form_data.id:
-#             form_data.id = str(uuid.uuid4())
-
-#         filename = f"{form_data.employeeName}_{form_data.id}.pdf"
-#         s3_client = get_s3_client()
-
-#         # PDF 생성 (함수 호출로 간결하게!)
-#         template_path = "/Users/haeun/Desktop/BOSK/submission-app/public/assets/Form.pdf"  # local path
-#         # template_path = "/home/ubuntu/Form.pdf"  # EC2 path
-#         pdf_bytes = build_filled_pdf(template_path, form_data)
-
-#         # S3 업로드
-#         s3_client.put_object(
-#             Bucket='bosk-pdf',
-#             Key=f"work-hours-forms/{filename}",
-#             Body=pdf_bytes,
-#             ContentType='application/pdf'
-#         )
-
-#         s3_url = f"https://bosk-pdf.s3.amazonaws.com/work-hours-forms/{filename}"
-#         print(f"S3 URL: {s3_url}")
-#         print(f"Form ID: {form_data.id}")
-#         print(f"S3 Filename: {filename}")
-
-#         return {
-#             "message": "PDF saved to S3 successfully",
-#             "file_url": s3_url,
-#             "form_id": form_data.id,
-#             "s3_filename": filename
-#         }
-
-#     except ClientError as e:
-#         print(f"AWS S3 Error: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"S3 error: {str(e)}")
-#     except Exception as e:
-#         print(f"Unexpected error: {str(e)}")
-#         import traceback
-#         print(traceback.format_exc())
-#         raise HTTPException(status_code=500, detail=str(e))
-    
-
-# @app.post("/submit-form")
-# async def submit_form(form_data: FormData):
-#     try:
-#         conn = get_db_connection()
-#         cur = conn.cursor()
-
-#         # 1️⃣ UUID 생성
-#         form_id = form_data.id
-
-#         # 2️⃣ forms 테이블 INSERT
-#         cur.execute("""
-#             INSERT INTO forms (
-#                 id,
-#                 employee_name,
-#                 requestor_name,
-#                 request_date,
-#                 service_week_start,
-#                 service_week_end,
-#                 signature,
-#                 is_submit,
-#                 status
-#             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-#         """, (
-#             form_id,
-#             form_data.employeeName,
-#             form_data.requestorName,
-#             datetime.strptime(form_data.requestDate, "%m/%d/%Y"),
-#             datetime.strptime(form_data.serviceWeek["start"], "%m/%d/%Y"),
-#             datetime.strptime(form_data.serviceWeek["end"], "%m/%d/%Y"),
-#             form_data.signature[:15],
-#             form_data.isSubmit,
-#             form_data.status.value
-#         ))
-
-#         # 3️⃣ schedule 테이블에 각 항목 INSERT
-#         for item in form_data.schedule:
-#             cur.execute("""
-#                 INSERT INTO form_schedule (
-#                     form_id,
-#                     day,
-#                     time,
-#                     location
-#                 ) VALUES (%s, %s, %s, %s)
-#             """, (
-#                 form_id,
-#                 item.day,
-#                 item.time,
-#                 item.location
-#             ))
-
-#         conn.commit()
-#         cur.close()
-#         conn.close()
-
-#         return {"message": "Form data saved successfully", "id": form_id}
-
-#     except Exception as e:
-#         return {"error": str(e)}
-
-#     except Exception as e:
-#         print("DB insert error:", str(e))
-#         raise HTTPException(status_code=500, detail="Failed to save data to database.")
 
 
 @app.post("/submit-form")
@@ -291,13 +178,14 @@ async def submit_form(form_data: FormData):
         import traceback
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 
 @app.get("/forms")
 async def get_forms():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-
+    
+    # forms 데이터 가져오기
     cur.execute("""
         SELECT
             id,
@@ -314,13 +202,60 @@ async def get_forms():
         FROM forms
         ORDER BY request_date DESC;
     """)
-
-    rows = cur.fetchall()
+    forms = cur.fetchall()
+    
+    # 각 form에 대해 total_hours 계산
+    for form in forms:
+        cur.execute("""
+            SELECT time 
+            FROM form_schedule 
+            WHERE form_id = %s
+        """, (form['id'],))
+        schedules = cur.fetchall()
+        
+        total_hours = 0
+        for schedule in schedules:
+            time_range = schedule['time']
+            hours = calculate_hours_from_range(time_range)
+            total_hours += hours
+        
+        form['total_hours'] = round(total_hours, 2)
+    
     cur.close()
     conn.close()
-    return rows
+    return forms
 
-
+def calculate_hours_from_range(time_range):
+    """시간 범위 문자열에서 시간 계산"""
+    try:
+        if not time_range or ' - ' not in str(time_range):
+            return 0
+            
+        start_time_str, end_time_str = str(time_range).split(' - ')
+        
+        # 시간을 24시간 형식으로 변환
+        start_hour = datetime.strptime(start_time_str.strip(), '%I:%M %p').hour
+        start_minute = datetime.strptime(start_time_str.strip(), '%I:%M %p').minute
+        
+        end_hour = datetime.strptime(end_time_str.strip(), '%I:%M %p').hour
+        end_minute = datetime.strptime(end_time_str.strip(), '%I:%M %p').minute
+        
+        # 분 단위로 변환
+        start_minutes = start_hour * 60 + start_minute
+        end_minutes = end_hour * 60 + end_minute
+        
+        # 자정을 넘어가는 경우
+        if end_minutes <= start_minutes:
+            end_minutes += 24 * 60  # 다음날로 계산
+        
+        # 시간 차이 계산
+        diff_minutes = end_minutes - start_minutes
+        hours = diff_minutes / 60
+        
+        return hours
+    except Exception as e:
+        print(f"Time parsing error: {e}, time_range: {time_range}")
+        return 0
 
 
 
@@ -341,7 +276,6 @@ async def get_form_with_schedule(form_id: str):
     return {"form": form, "schedule": schedule}
 
 
-from urllib.parse import unquote
 
 @app.get("/form-pdf-url/{pdf_filename}")
 def get_pdf_presigned_url(pdf_filename: str):

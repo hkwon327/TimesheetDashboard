@@ -78,18 +78,28 @@ const Dashboard = () => {
       <div className="table-section">
         <div className="table-header">
           <span>{activeStatusTab.charAt(0).toUpperCase() + activeStatusTab.slice(1)}</span>
-          <span
-            className="select-all"
-            onClick={() => {
-              if (selected.length === forms.length) {
-                setSelected([]);
-              } else {
-                setSelected(forms.map((_, i) => i));
-              }
-            }}
-          >
-            {selected.length === forms.length ? "Unselect All" : "Select All"}
-          </span>
+          <div className="table-header-left">
+            <label className="switch">
+              <input 
+                type="checkbox" 
+                checked={selected.length === forms.filter((form) => form.status === activeStatusTab).length && forms.filter((form) => form.status === activeStatusTab).length > 0}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    // 현재 탭의 모든 항목 선택
+                    const filteredForms = forms.filter((form) => form.status === activeStatusTab);
+                    setSelected(filteredForms.map((_, i) => i));
+                  } else {
+                    // 모든 선택 해제
+                    setSelected([]);
+                  }
+                }}
+              />
+              <span className="slider"></span>
+            </label>
+            <span className="select-all">
+              Select All
+            </span>
+          </div>
         </div>
 
         <table>
@@ -118,10 +128,13 @@ const Dashboard = () => {
                   </td>
                   <td>{form.employee_name}</td>
                   <td>{form.requestor_name}</td>
-                  <td>{form.request_date?.slice(0, 10)}</td>
+                  <td>{form.request_date?.slice(5, 7)} {"/"}
+                    {form.request_date?.slice(8, 10)}</td>
                   <td>
-                    {form.service_week_start?.slice(0, 10)} ~{" "}
-                    {form.service_week_end?.slice(0, 10)}
+                    {form.service_week_start?.slice(5, 7)} {"/"}
+                    {form.service_week_start?.slice(8, 10)} {" - "}
+                    {form.service_week_end?.slice(5, 7)} {"/"}
+                    {form.service_week_end?.slice(8, 10)}
                   </td>
                   <td>{form.total_hours || 0}</td>
                   <td>{form.signature?.startsWith("data:image/") ? "InValid" : "Valid"}</td>
