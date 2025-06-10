@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
+import TabRegion from "./TabRegion";
 
 const Dashboard = () => {
   const [forms, setForms] = useState([]);
@@ -21,8 +22,6 @@ const Dashboard = () => {
   const approvedCount = forms.filter(f => f.status === "approved").length;
   const confirmedCount = forms.filter(f => f.status === "confirmed").length;
 
-  const handleTabClick = (tab) => setActiveTab(tab);
-
   const toggleSelect = (index) => {
     setSelected((prev) =>
       prev.includes(index)
@@ -38,17 +37,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <div className="tabs">
-        {["Tennessee", "Kentucky"].map((tab) => (
-          <button
-            key={tab}
-            className={`tab ${activeTab === tab ? "active" : ""}`}
-            onClick={() => handleTabClick(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <TabRegion activeRegion={activeTab} onRegionChange={setActiveTab} />
 
       {/* 상태 카드 + 탭 기능 */}
       <div className="status-cards">
@@ -69,9 +58,6 @@ const Dashboard = () => {
           onClick={() => setActiveStatusTab("confirmed")}
         >
           Confirmed {confirmedCount}
-        </div>
-        <div className="card total">
-          Total Employees {forms.length}
         </div>
       </div>
 

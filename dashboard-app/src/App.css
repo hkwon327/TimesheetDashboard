@@ -1,24 +1,26 @@
 .app-layout {
   display: flex;
+  height: auto;
+  min-height: 100vh;
+  align-items: stretch;
+  background: var(--background-color);
 }
 
 .sidebar {
-  width: 200px;
+  width: 260px;
   background-color: #fff;
-  padding: 20px;
-  height: 100vh;
+  padding: 1.5rem 1rem;
+  height: auto;
+  min-height: 100vh;
   box-sizing: border-box;
-  position: fixed; /* 고정 사이드바 */
-  top: 0;
-  left: 0;
   border-right: 1px solid #eee;
+  flex-shrink: 0;
 }
 
 .main-content {
-  margin-left: 200px; /* ✅ sidebar 만큼 밀어내기 */
-  padding: 30px;
-  width: calc(100% - 200px); /* 선택 사항 */
-  box-sizing: border-box;
-  background-color: #f9f9f9;
+  flex: 1;
+  padding: 1.5rem;
+  background: var(--background-color);
   min-height: 100vh;
+  overflow-x: auto;
 }

@@ -9,8 +9,34 @@ import {
   LinearScale
 } from "chart.js";
 import "./WorkLog.css";
+import TabRegion from "./TabRegion";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale);
+
+// 시간 문자열을 시/분 단위로 변환하는 함수
+function parseTime(timeStr) {
+  if (!timeStr) return 0;
+  const [time, meridiem] = timeStr.trim().split(' ');
+  let [hour, minute] = time.split(':').map(Number);
+  if (meridiem === 'PM' && hour !== 12) hour += 12;
+  if (meridiem === 'AM' && hour === 12) hour = 0;
+  return hour + (minute / 60);
+}
+
+// "8:00 AM - 5:00 PM" → 9
+function getWorkHours(timeRange) {
+  if (!timeRange) return 0;
+  const [start, end] = timeRange.split('-').map(s => s.trim());
+  if (!start || !end) return 0;
+  const startHour = parseTime(start);
+  const endHour = parseTime(end);
+  // 자정을 넘는 경우
+  if (endHour < startHour) {
+    return (endHour + 24) - startHour;
+  }
+  return endHour - startHour;
+}
+
 
 const WorkLog = ({ selectedFormId }) => {
   const { formId: paramFormId } = useParams();
@@ -20,6 +46,7 @@ const WorkLog = ({ selectedFormId }) => {
   const [formInfo, setFormInfo] = useState(null);
   const [schedule, setSchedule] = useState([]);
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [activeTab, setActiveTab] = useState("Tennessee");
 
   useEffect(() => {
     if (!formId) return;
@@ -50,16 +77,27 @@ const WorkLog = ({ selectedFormId }) => {
     datasets: [
       {
         label: "Hours",
-        data: schedule.map(() => 8),
-        backgroundColor: "#3D4DF3"
+        data: schedule.map(item => Math.abs(getWorkHours(item.time))),
+        backgroundColor: "#B3B3B3",
+        barThickness: 50,
+        borderRadius: 10
       }
     ]
   };
 
+  const totalHours = schedule.reduce((sum, item) => sum + Math.abs(getWorkHours(item.time)), 0);
+  const missedDays = schedule.filter(item => Math.abs(getWorkHours(item.time)) === 0).length;
+
   const options = {
     scales: {
       y: { beginAtZero: true, max: 10 }
-    }
+    },
+    plugins: {
+      tooltip: { enabled: false },
+      legend: { display: false }
+    },
+    hover: { mode: null },
+    events: [] // completely disables all mouse events (including hover)
   };
 
   if (!formId) {
@@ -82,10 +120,7 @@ const WorkLog = ({ selectedFormId }) => {
 
   return (
     <div className="worklog-container">
-      <div className="tabs">
-        <button className="active">🏠 Tennessee</button>
-        <button>🏠 Kentucky</button>
-      </div>
+      <TabRegion activeRegion={activeTab} onRegionChange={setActiveTab} />
 
       <div className="detail-section">
         {/* 왼쪽: 상세 정보 + 요약 */}
@@ -94,7 +129,6 @@ const WorkLog = ({ selectedFormId }) => {
             <h3>Detailed Work Hours</h3>
             <div className="header-row">
               <span>{formInfo.employee_name}</span>
-              <span>{formInfo.request_date?.slice(0, 10)}</span>
               <span>{formInfo.status}</span>
             </div>
             <table>
@@ -117,8 +151,10 @@ const WorkLog = ({ selectedFormId }) => {
                 <Bar data={data} options={options} />
               </div>
               <div className="summary-text">
-                <p><strong>Total Hours:</strong> {schedule.length * 8} hrs</p>
-                <p><strong>Missed Day:</strong> 0 days</p>
+                <p>
+                  <strong>Total Hours:</strong> {totalHours} hrs &nbsp;  &nbsp;
+                  <strong>Missed Day:</strong> {missedDays} days &nbsp;  &nbsp; 
+                </p>
               </div>
             </div>
           </div>
@@ -126,14 +162,14 @@ const WorkLog = ({ selectedFormId }) => {
 
         {/* 오른쪽: PDF 미리보기 */}
         <div className="timesheet-preview">
-          <h3>View Submitted Timesheet</h3>
+          <h3>Submitted Timesheet</h3>
           <div className="empty-preview">
             {pdfUrl ? (
               <iframe
                 src={pdfUrl}
                 width="100%"
-                height="600px"
-                title="PDF Preview"
+                height="830px"
+                title="Submitted Timesheet"
               />
             ) : (
               <p>Loading PDF preview...</p>

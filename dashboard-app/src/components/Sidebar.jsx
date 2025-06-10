@@ -1,12 +1,16 @@
 import React from "react";
 import "./Sidebar.css";
+import logoImg from "../assets/logo.png";
 
 const Sidebar = ({ activeMenu, onMenuClick }) => {
-  const menus = ["Dashboard", "Work Logs", "Monthly Summary"];
+  const menus = ["Dashboard", "Work Logs"];
 
   return (
     <aside className="sidebar">
-      <h1 className="logo">Moveret</h1>
+      <div className="logo-row">
+        <img src={logoImg} alt="logo" className="logo-img" />
+        <h1 className="logo">M O V E R E T</h1>
+      </div>
       <ul>
         {menus.map((menu) => (
           <li

@@ -1,58 +1,232 @@
 .worklog-container {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
+  padding: 2rem;
+  min-height: 100vh;
 }
 
 .tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.tabs button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 2.2rem;
+  border: 1.5px solid #e0e7ef;
+  background: #f6f8fa;
+  color: #33363F;
+  font-weight: 600;
+  font-size: 1.08rem;
+  border-radius: 2rem;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, border 0.18s;
+  box-shadow: 0 2px 8px rgba(60, 80, 180, 0.04);
+  cursor: pointer;
+}
+
+.tabs button:hover {
+  background: #f4f4f4fe;
+  color: #000000;
+  border-color: #b3e6c6;
+}
+
+.tabs button.active {
+  background: #e6f9ef;
+  color: #244415;
+  border-color: #1cef57;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.10);
 }
 
 .detail-section {
-  display: flex;
-  gap: 40px; /* ✅ 왼/오 간격 띄움 */
-  justify-content: space-between;
-  align-items: stretch;
-  min-height: 500px; /* ✅ 세로 공간 남지 않도록 충분히 설정 */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
 }
 
-/* 왼쪽: 위아래 세로 배치 */
 .left-section {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* ✅ 아래쪽에 딱 붙도록 */
-  gap: 30px;
+  gap: 2rem;
 }
 
-/* 왼쪽 박스들: 너비 동일하게 */
-.work-details,
-.summary-section {
-  flex: 1;
+.work-details {
   background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
-}
-
-/* 오른쪽 박스: 전체 높이 차지 */
-.timesheet-preview {
-  flex: 1;
-  min-height: 100%;
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+  border-radius: 1.5rem;
+  border: 1.5px solid #e0e7ef;
+  box-shadow: 0 6px 24px rgba(60, 80, 180, 0.08);
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  align-items: stretch;
 }
 
-/* summary 내부 레이아웃 */
-.summary-box {
+.work-details h3 {
+  margin: 0 0 1.5rem 0;
+  color: #1e293b;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+.header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.header-row span:first-child {
+  text-align: left;
+  flex: 1;
+  color: #1e293b;
+}
+
+.header-row span:last-child {
+  text-align: right;
+  flex: 1;
+  color: #7091d8;
+}
+
+.work-details table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.work-details td {
+  padding: 1.25rem 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  color: #64748b;
+  text-align: center;
+  font-size: 1.08rem;
+  font-weight: 500;
+}
+
+.work-details td:first-child {
+  text-align: left;
+  width: 32%;
+}
+
+.work-details td:last-child {
+  text-align: right;
+  width: 32%;
+}
+
+.work-details tr:last-child td {
+  border-bottom: none;
+}
+
+.work-details tr:hover {
+  background: none;
+  cursor: default;
+}
+
+.summary-section {
+  background: #fff;
+  border: 1.5px solid #e0e7ef;
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 24px rgba(60, 80, 180, 0.08);
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.summary-section h3 {
+  margin: 0 0 1.5rem 0;
+  color: #00173c;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+.summary-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.chart-box {
+  background: #fff;
+  border-radius: 1.25rem;
+  border: 2px solid #e0e7ef;
+  padding: 2rem 1.5rem 2.5rem 1.5rem;
+  box-shadow: 0 6px 24px rgba(60, 80, 180, 0.08);
+  transition: box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.summary-text {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5rem;
+  margin-top: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.summary-text strong {
+  color: #7091d8;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0 0.25rem 0 0.5rem;
+}
+
+.summary-text span, .summary-text p {
+  font-size: 1.15rem;
+  color: #334155;
+  font-weight: 500;
+  margin: 0;
+}
+
+.timesheet-preview {
+  background: #fff;
+  border-radius: 1.5rem;
+  border: 1.5px solid #e0e7ef;
+  box-shadow: 0 6px 24px rgba(60, 80, 180, 0.08);
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.timesheet-preview h3 {
+  margin: 0 0 1.5rem 0;
+  color: #1e293b;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-align: center;
+}
+
+.empty-preview {
+  background-color: var(--background-color);
+  border-radius: var(--radius-md);
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.empty-preview iframe {
+  border: none;
+  border-radius: var(--radius-md);
 }
