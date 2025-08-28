@@ -1,0 +1,26 @@
+.app-layout {
+  display: flex;
+  height: auto;
+  min-height: 100vh;
+  align-items: stretch;
+  background: var(--background-color);
+}
+
+.sidebar {
+  width: 260px;
+  background-color: #fff;
+  padding: 1.5rem 1rem;
+  height: auto;
+  min-height: 100vh;
+  box-sizing: border-box;
+  border-right: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  background: var(--background-color);
+  min-height: 100vh;
+  overflow-x: auto;
+}
