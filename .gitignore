@@ -1,7 +1,3 @@
-# Specific directories to ignore
-ead/
-OPT/
-문서/
 
 # Common files to ignore
 node_modules/

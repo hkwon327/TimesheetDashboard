@@ -1,17 +1,17 @@
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Request, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
-from psycopg2.extras import RealDictCursor
-from fastapi import APIRouter, Body
-from backend_api.models import FormData, PdfFormData
 from botocore.exceptions import ClientError
-from backend_api.utils import get_s3_client, build_filled_pdf
-from db.connection import get_db_connection
 from datetime import datetime
-from psycopg2.extras import Json
 from urllib.parse import unquote
 import logging
+
+from psycopg2.extras import RealDictCursor, Json
 from psycopg2 import errors
-from fastapi import HTTPException, Request
+
+from .models import FormData, PdfFormData
+from .utils import get_s3_client, build_filled_pdf
+from db.connection import get_db_connection  # db 폴더가 backend_api 밖(루트)에 있으므로 절대 임포트 유지
+
 
 # FastAPI 앱 초기화
 app = FastAPI()
@@ -90,20 +90,18 @@ async def test_s3():
 @app.post("/generate-pdf")
 async def generate_pdf(form_data: PdfFormData):
     try:
-        template_path = "/Users/haeun/Desktop/BOSK/submission-app/public/assets/Form.pdf"  # local path
-        # template_path = "/home/ubuntu/Form.pdf"  # EC2 path
-        pdf_bytes = build_filled_pdf(template_path, form_data)
+        pdf_bytes = build_filled_pdf(form_data)  # ← 경로 인자 제거
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
-            headers={
-                "Content-Disposition": "inline; filename=preview.pdf",
-                "Access-Control-Allow-Origin": "*"
-            }
+            headers={"Content-Disposition": "inline; filename=preview.pdf"}
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"PDF generation error: {str(e)}")
+        logger.exception("PDF generation error")
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
+
 
 
 # 유틸: 빈 문자열 → None
@@ -133,9 +131,9 @@ async def submit_form(form_data: FormData):  # ✅ 타입 힌트 추가
             schedule=form_data.schedule or [],
             signature=form_data.signature or ""
         )
-        
-        template_path = "/Users/haeun/Desktop/BOSK/submission-app/public/assets/Form.pdf"
-        pdf_bytes = build_filled_pdf(template_path, pdf_form_data)
+
+        pdf_bytes = build_filled_pdf(pdf_form_data)
+
 
         # 2) DB 연결
         conn = get_db_connection()
