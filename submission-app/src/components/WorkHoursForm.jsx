@@ -16,7 +16,7 @@ const WorkHoursForm = () => {
   const [isServiceWeekOpen, setIsServiceWeekOpen] = useState(false);
   const [customTimeWarnings, setCustomTimeWarnings] = useState({});
 
-  const locationOptions = ['BOSK Trailer', 'SAMKOO Trailer', 'Off'];
+  const locationOptions = ['BOSK Trailer', 'SAMKOO Trailer', 'KY SK Trailer', 'Off'];
 
   const handleInputChange = (day, field, value) => {
     if (field === 'customTime') {
@@ -203,7 +203,7 @@ const WorkHoursForm = () => {
             open={isServiceWeekOpen}
             onCalendarOpen={() => setIsServiceWeekOpen(true)}
             onCalendarClose={() => setIsServiceWeekOpen(false)}
-            formatWeekDay={(nameOfDay) => nameOfDay.substr(0, 1)} // 요일을 한글자로 표시
+            formatWeekDay={(nameOfDay) => nameOfDay.substr(0, 1)} 
             popperModifiers={{
               offset: {
                 enabled: true,
@@ -291,19 +291,9 @@ const WorkHoursForm = () => {
 
         <div className="form-buttons">
           <button className="preview-button" type="button" onClick={handlePreview}>
-            <span className="circle1"></span>
-            <span className="circle2"></span>
-            <span className="circle3"></span>
-            <span className="circle4"></span>
-            <span className="circle5"></span>
             <span className="text">Preview</span>
           </button>
           <button className="submit-button" type="submit">
-            <span className="circle1"></span>
-            <span className="circle2"></span>
-            <span className="circle3"></span>
-            <span className="circle4"></span>
-            <span className="circle5"></span>
             <span className="text">Submit</span>
           </button>
         </div>

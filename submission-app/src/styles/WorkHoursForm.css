@@ -452,109 +452,50 @@ select:active,
   transition: all 0.2s ease;
 }
 
-/* 애니메이션 효과가 있는 Preview 버튼 */
+/* 깔끔한 Preview 버튼 */
 .preview-button {
   font-family: Arial, Helvetica, sans-serif;
   font-weight: bold;
   color: #000000;
-  background-color: #d4d3d3cb;
+  background-color: #ffffff;   /* Submit 버튼과 톤 맞춤 */
   padding: 1em 2em;
-  border: 0.5px solid #000000;
+  border: 2px solid #9ad1a0;   
   border-radius: .6rem;
-  position: relative;
   cursor: pointer;
-  overflow: hidden;
   min-width: 120px;
   min-height: 44px; /* 터치 친화적 */
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-/* Preview 버튼의 원형 애니메이션 요소들 */
-.preview-button .circle1,
-.preview-button .circle2,
-.preview-button .circle3,
-.preview-button .circle4,
-.preview-button .circle5 {
-  position: absolute;
-  left: 50%;
-  top: 60%;
-  transform: translate(-50%, -50%);
-  height: 35px;
-  width: 100px;
-  background-color: #978f7d;
-  border-radius: 50%;
-  transition: .6s ease;
+/* Hover 효과 */
+.preview-button:hover {
+  background-color: #d8f8e1;  /* 산뜻한 밝은 민트 */
+  border-color: #9ad1a0;      /* 테두리도 민트 계열로 */
+  color: #000000;
 }
 
-/* Preview 버튼 텍스트는 상대적 위치 */
-.preview-button .text {
-  position: relative;
-  z-index: 10;
-}
 
-/* Preview 버튼 각 원형의 초기 위치 */
-.preview-button .circle1 {
-  transform: translate(-3.3em, -4em);
-}
-
-.preview-button .circle2 {
-  transform: translate(-6em, 1.3em);
-}
-
-.preview-button .circle3 {
-  transform: translate(-.2em, 1.8em);
-}
-
-.preview-button .circle4 {
-  transform: translate(3.5em, 1.4em);
-}
-
-.preview-button .circle5 {
-  transform: translate(3.5em, -3.8em);
-}
-
-/* Preview 버튼 Hover 애니메이션 효과 */
-.preview-button:hover .circle1,
-.preview-button:hover .circle2,
-.preview-button:hover .circle3,
-.preview-button:hover .circle4,
-.preview-button:hover .circle5 {
-  transform: translate(-50%, -50%) scale(4);
-  transition: 1.5s ease;
-}
 
 /* 애니메이션 효과가 있는 Submit 버튼 */
 .submit-button {
   font-family: Arial, Helvetica, sans-serif;
   font-weight: bold;
   color: #000000;
-  background-color: rgb(255, 255, 255);
+  background-color: #ffffff;   /* Submit 버튼과 톤 맞춤 */
   padding: 1em 2em;
-  border: 0.5px solid #6a6357;
+  border: 2px solid #9ad1a0;   
   border-radius: .6rem;
-  position: relative;
   cursor: pointer;
-  overflow: hidden;
   min-width: 120px;
   min-height: 44px; /* 터치 친화적 */
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-/* Submit 버튼의 원형 애니메이션 요소들 */
-.submit-button .circle1,
-.submit-button .circle2,
-.submit-button .circle3,
-.submit-button .circle4,
-.submit-button .circle5 {
-  position: absolute;
-  left: 50%;
-  top: 60%;
-  transform: translate(-50%, -50%);
-  height: 35px;
-  width: 100px;
-  background-color: #887974;
-  border-radius: 50%;
-  transition: .6s ease;
+/* Hover 효과 */
+.submit-button:hover {
+  background-color: #d8f8e1;  /* 산뜻한 밝은 민트 */
+  border-color: #9ad1a0;      /* 테두리도 민트 계열로 */
+  color: #000000;
 }
 
 /* Submit 버튼 텍스트는 상대적 위치 */
@@ -563,36 +504,6 @@ select:active,
   z-index: 10;
 }
 
-/* Submit 버튼 각 원형의 초기 위치 */
-.submit-button .circle1 {
-  transform: translate(-3.3em, -4em);
-}
-
-.submit-button .circle2 {
-  transform: translate(-6em, 1.3em);
-}
-
-.submit-button .circle3 {
-  transform: translate(-.2em, 1.8em);
-}
-
-.submit-button .circle4 {
-  transform: translate(3.5em, 1.4em);
-}
-
-.submit-button .circle5 {
-  transform: translate(3.5em, -3.8em);
-}
-
-/* Submit 버튼 Hover 애니메이션 효과 */
-.submit-button:hover .circle1,
-.submit-button:hover .circle2,
-.submit-button:hover .circle3,
-.submit-button:hover .circle4,
-.submit-button:hover .circle5 {
-  transform: translate(-50%, -50%) scale(4);
-  transition: 1.5s ease;
-}
 
 /* -------------------------------
    DATEPICKER CUSTOMIZATION

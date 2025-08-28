@@ -1,16 +1,17 @@
-import boto3
-
-from PyPDF2 import PdfReader, PdfWriter
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
 import base64
 import io
 import os
+
+import boto3
 from fastapi import HTTPException
+from PyPDF2 import PdfReader, PdfWriter
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
 
 # 전역 S3 클라이언트 인스턴스 (한 번만 생성)
 _s3_client = boto3.client('s3')
+
 
 def get_s3_client():
     """
@@ -20,53 +21,113 @@ def get_s3_client():
     return _s3_client
 
 
+def _has_text(v) -> bool:
+    """문자열이 공백이 아닌 텍스트인지 확인"""
+    return isinstance(v, str) and v.strip() != ""
+
+
 def build_filled_pdf(template_path: str, form_data) -> bytes:
+    """
+    주어진 템플릿 PDF에 form_data 내용을 채워서 바이트로 반환.
+    - 빈 값(혹은 공백만 있는 값)은 출력하지 않음
+    - serviceWeek는 start/end 둘 중 하나라도 있으면 'start ~ end' 형식으로 출력
+    - schedule의 각 행은 **time/location 중 하나라도** 값이 있을 때만 그 행을 출력
+      (그때 day도 함께 출력)
+    """
     if not os.path.exists(template_path):
         raise HTTPException(status_code=404, detail="Template PDF not found")
 
+    # 템플릿 PDF 읽기
     template_pdf = PdfReader(template_path)
+
+    # 그리기용 버퍼/캔버스 준비
     packet = io.BytesIO()
     can = canvas.Canvas(packet, pagesize=letter)
     can.setFont("Helvetica", 10)
 
-    y = 710
-    can.drawString(440, y, form_data.requestDate)
-    can.drawString(440, y - 32, form_data.requestorName)
-    can.drawString(215, y - 135, form_data.employeeName)
+    # ===== 상단 필드 =====
+    y_top = 710
 
-    if form_data.schedule:
-        can.drawString(215, y - 170, form_data.schedule[0].location)
+    if _has_text(getattr(form_data, "requestDate", "")):
+        can.drawString(440, y_top, form_data.requestDate)
 
-    service_week = form_data.serviceWeek
-    can.drawString(210, y - 210, f"{service_week['start']} ~ {service_week['end']}")
+    if _has_text(getattr(form_data, "requestorName", "")):
+        can.drawString(440, y_top - 32, form_data.requestorName)
 
-    y -= 270
-    for item in form_data.schedule:
-        can.drawString(150, y, item.day)
-        can.drawString(260, y, item.time)
-        can.drawString(400, y, item.location)
-        y -= 30
+    if _has_text(getattr(form_data, "employeeName", "")):
+        can.drawString(215, y_top - 135, form_data.employeeName)
+
+    # 첫 스케줄 위치(옵션)
+    schedule = getattr(form_data, "schedule", None) or []
+    if schedule:
+        first_loc = getattr(schedule[0], "location", None)
+        if _has_text(first_loc):
+            can.drawString(215, y_top - 170, first_loc)
+
+    # 서비스 주간
+    service_week = getattr(form_data, "serviceWeek", {}) or {}
+    sw_start = (service_week.get("start") or "").strip() if isinstance(service_week, dict) else ""
+    sw_end = (service_week.get("end") or "").strip() if isinstance(service_week, dict) else ""
+    if sw_start or sw_end:
+        can.drawString(210, y_top - 210, f"{sw_start} ~ {sw_end}")
+
+    # ===== 스케줄 표 =====
+    y = y_top - 270
+    for item in schedule:
+        day = getattr(item, "day", "") or ""
+        time_ = getattr(item, "time", "") or ""
+        loc = getattr(item, "location", "") or ""
+
+        # ✅ 시간 또는 장소가 있을 때만 그 줄을 출력 (요일 단독 출력 방지)
+        if _has_text(time_) or _has_text(loc):
+            if _has_text(day):
+                can.drawString(150, y, day)
+            if _has_text(time_):
+                can.drawString(260, y, time_)
+            if _has_text(loc):
+                can.drawString(400, y, loc)
+            y -= 30  # 실제 출력한 행에만 줄바꿈
 
 
-    can.drawString(320, y - 60, form_data.employeeName)
+    # ===== 하단 고정 영역 =====
+    EMP_SIGN_NAME_X, EMP_SIGN_NAME_Y = 330, 230   
+    SIGN_IMG_X, SIGN_IMG_Y = 280, 165            
+    REQUESTOR_NAME_X, REQUESTOR_NAME_Y = 430, 190 
 
-    # Signature 처리
-    if form_data.signature:
+    # 하단 사인 이름(고정 좌표)
+    if _has_text(getattr(form_data, "employeeName", "")):
+        can.drawString(EMP_SIGN_NAME_X, EMP_SIGN_NAME_Y, form_data.employeeName)
+
+    # 서명 이미지(고정 좌표)
+    sig_raw = getattr(form_data, "signature", None)
+    if _has_text(sig_raw):
         try:
-            sig_data = form_data.signature.split(',')[1] if ',' in form_data.signature else form_data.signature
+            sig_data = sig_raw.split(",")[1] if "," in sig_raw else sig_raw
             sig_bytes = base64.b64decode(sig_data)
             sig_image = io.BytesIO(sig_bytes)
-            can.drawImage(ImageReader(sig_image), x=320, y=170, width=150, height=50, mask='auto')
-        except Exception as e:
+            can.drawImage(
+                ImageReader(sig_image),
+                x=SIGN_IMG_X,
+                y=SIGN_IMG_Y,
+                width=150,
+                height=50,
+                mask="auto",
+            )
+        except Exception:
             raise HTTPException(status_code=400, detail="Invalid signature format")
 
+    # 요청자 이름(고정 좌표)
+    if _has_text(getattr(form_data, "requestorName", "")):
+        can.drawString(REQUESTOR_NAME_X, REQUESTOR_NAME_Y, form_data.requestorName)  
+
+    # 캔버스 종료 및 병합
     can.save()
     packet.seek(0)
 
     new_pdf = PdfReader(packet)
     output = PdfWriter()
     page = template_pdf.pages[0]
-    page.merge_page(new_pdf.pages[0])
+    page.merge_page(new_pdf.pages[0])  # 오버레이
     output.add_page(page)
 
     final_output = io.BytesIO()
