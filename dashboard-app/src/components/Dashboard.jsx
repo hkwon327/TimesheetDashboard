@@ -10,7 +10,7 @@ const API_BASE =
     import.meta.env &&
     import.meta.env.VITE_API_BASE) ||
   process.env.REACT_APP_API_BASE ||
-  "http://localhost:8000";
+  "http://52.91.22.196:8000";
 
 // 한 페이지 최대 10개
 const PAGE_SIZE = 10;

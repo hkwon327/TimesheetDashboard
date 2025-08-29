@@ -53,7 +53,7 @@ const WorkLog = ({ selectedFormId }) => {
 
     // 1. Form 데이터 로드
     axios
-      .get(`http://localhost:8000/form/${formId}`)
+      .get(`http://52.91.22.196:8000/form/${formId}`)
       .then((res) => {
         setFormInfo(res.data.form);
         setSchedule(res.data.schedule);
@@ -62,7 +62,7 @@ const WorkLog = ({ selectedFormId }) => {
         const filename = res.data.form?.pdf_filename;
         if (filename) {
           axios
-            .get(`http://localhost:8000/form-pdf-url/${filename}`)
+            .get(`http://52.91.22.196:8000/form-pdf-url/${filename}`)
             .then((res) => {
               setPdfUrl(res.data.url);
             })

@@ -1,6 +1,6 @@
 export async function generatePdfPreview(previewData) {
     //const response = await fetch('http://44.222.140.196:8000/generate-pdf', {
-    const response = await fetch('http://localhost:8000/generate-pdf', {
+    const response = await fetch('http://52.91.22.196:8000/generate-pdf', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
