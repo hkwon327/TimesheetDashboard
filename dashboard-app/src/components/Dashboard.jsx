@@ -1,67 +1,54 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 import TabRegion from "./TabRegion";
+import { api } from "../api/client";
 
-// Vite: import.meta.env.VITE_API_BASE / CRA: process.env.REACT_APP_API_BASE
-const API_BASE =
-  (typeof import.meta !== "undefined" &&
-    import.meta.env &&
-    import.meta.env.VITE_API_BASE) ||
-  process.env.REACT_APP_API_BASE ||
-  "http://52.91.22.196:8000";
-
-// 한 페이지 최대 10개
 const PAGE_SIZE = 10;
 
 const Dashboard = () => {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const [activeRegion, setActiveRegion] = useState("Tennessee"); // "Tennessee" | "Kentucky"
-  const [activeStatus, setActiveStatus] = useState("pending");   // "pending" | "approved" | "confirmed"
+  const [activeRegion, setActiveRegion] = useState("Tennessee");
+  const [activeStatus, setActiveStatus] = useState("pending");
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
-  // 'KY SK Trailer'가 하루라도 있으면 Kentucky, 아니면 Tennessee
   const hasKySk = (schedule = []) =>
     Array.isArray(schedule) &&
     schedule.some((item) => (item?.location || "") === "KY SK Trailer");
 
   useEffect(() => {
-    let alive = true;
+    let canceled = false;
 
     const fetchAndTagRegion = async () => {
       setLoading(true);
       try {
-        // 1) 전체 폼 목록
-        const res = await axios.get(`${API_BASE}/forms`);
+        const res = await api.get("/forms");
         const list = Array.isArray(res.data?.forms) ? res.data.forms : [];
 
-        // 2) 각 폼 상세 조회 → 지역 태깅
         const withRegion = await Promise.all(
           list.map(async (f) => {
             try {
-              const d = await axios.get(`${API_BASE}/form/${f.id}`);
+              const d = await api.get(`/form/${f.id}`);
               const schedule = d?.data?.schedule || [];
               const region = hasKySk(schedule) ? "Kentucky" : "Tennessee";
               return { ...f, _region: region };
             } catch {
-              // 상세 조회 실패 시 기본 Tennessee
               return { ...f, _region: "Tennessee" };
             }
           })
         );
 
-        if (alive) {
+        if (!canceled) {
           setForms(withRegion);
           setLoading(false);
         }
       } catch (e) {
         console.error(e);
-        if (alive) {
+        if (!canceled) {
           setErr("Failed to load forms");
           setLoading(false);
         }
@@ -69,50 +56,33 @@ const Dashboard = () => {
     };
 
     fetchAndTagRegion();
-    return () => {
-      alive = false;
-    };
+    return () => { canceled = true; };
   }, []);
 
-  // 지역/상태 바꾸면 첫 페이지로
-  useEffect(() => {
-    setPage(1);
-  }, [activeRegion, activeStatus]);
+  useEffect(() => { setPage(1); }, [activeRegion, activeStatus]);
 
-  // ── 지역 기준 1차 필터 ─────────────────────────────────────────────
   const regionFiltered = useMemo(() => {
-    if (activeRegion === "Tennessee") {
-      return forms.filter((f) => f._region === "Tennessee");
-    }
-    if (activeRegion === "Kentucky") {
-      return forms.filter((f) => f._region === "Kentucky");
-    }
+    if (activeRegion === "Tennessee") return forms.filter((f) => f._region === "Tennessee");
+    if (activeRegion === "Kentucky")  return forms.filter((f) => f._region === "Kentucky");
     return forms;
   }, [forms, activeRegion]);
 
-  // 상태 카드: 현재 지역 기준 카운트
-  const counts = useMemo(
-    () => ({
-      pending: regionFiltered.filter((f) => f.status === "pending").length,
-      approved: regionFiltered.filter((f) => f.status === "approved").length,
-      confirmed: regionFiltered.filter((f) => f.status === "confirmed").length,
-    }),
-    [regionFiltered]
-  );
+  const counts = useMemo(() => ({
+    pending:   regionFiltered.filter((f) => f.status === "pending").length,
+    approved:  regionFiltered.filter((f) => f.status === "approved").length,
+    confirmed: regionFiltered.filter((f) => f.status === "confirmed").length,
+  }), [regionFiltered]);
 
-  // 테이블용 최종 필터 (지역 + 상태)
   const filtered = useMemo(
     () => regionFiltered.filter((f) => f.status === activeStatus),
     [regionFiltered, activeStatus]
   );
 
-  // 페이지네이션
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const clampedPage = Math.min(page, totalPages);
   const startIdx = (clampedPage - 1) * PAGE_SIZE;
   const currentPageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
 
-  // 날짜 포맷 (MM/DD)
   const fmtMD = (val) => {
     if (!val) return "";
     if (typeof val === "string" && val.length >= 10) {
@@ -135,13 +105,11 @@ const Dashboard = () => {
   const toggleOne = (formId) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(formId)) next.delete(formId);
-      else next.add(formId);
+      next.has(formId) ? next.delete(formId) : next.add(formId);
       return next;
     });
   };
 
-  // Select All: 현재 탭(지역+상태) 전체 기준
   const allSelectedInTab =
     filtered.length > 0 && filtered.every((f) => selectedIds.has(f.id));
 
@@ -154,15 +122,11 @@ const Dashboard = () => {
     });
   };
 
-  // 상태 업데이트 API 호출
   const updateStatus = async (ids, newStatus) => {
     try {
       await Promise.all(
-        ids.map((id) =>
-          axios.put(`${API_BASE}/form/${id}/status`, { new_status: newStatus })
-        )
+        ids.map((id) => api.put(`/form/${id}/status`, { new_status: newStatus }))
       );
-      // 성공 후 로컬 반영
       setForms((prev) =>
         prev.map((f) => (ids.includes(f.id) ? { ...f, status: newStatus } : f))
       );
@@ -172,7 +136,6 @@ const Dashboard = () => {
     }
   };
 
-  // 현재 탭(지역+상태) 내에서 선택된 항목
   const selectedIdsInTab = useMemo(() => {
     const ids = new Set(selectedIds);
     return filtered.filter((f) => ids.has(f.id)).map((f) => f.id);
@@ -187,7 +150,6 @@ const Dashboard = () => {
     <div className="dashboard">
       <TabRegion activeRegion={activeRegion} onRegionChange={setActiveRegion} />
 
-      {/* 상태 카드 (주 기준 카운트) */}
       <div className="status-cards">
         <div
           className={`card pending ${activeStatus === "pending" ? "active" : ""}`}
@@ -271,12 +233,11 @@ const Dashboard = () => {
           </tbody>
         </table>
 
-        {/* 페이지네이션 */}
         <div className="pagination">
           <button disabled={clampedPage === 1} onClick={() => setPage(clampedPage - 1)}>
             {"<"}
           </button>
-        {Array.from({ length: totalPages }, (_, i) => (
+          {Array.from({ length: totalPages }, (_, i) => (
             <button
               key={i}
               className={clampedPage === i + 1 ? "active" : ""}
@@ -294,7 +255,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 액션 버튼: 중앙 정렬, Delete는 CSS로 오른쪽 고정(order: 99) */}
       <div className="action-buttons">
         {activeStatus === "pending" && (
           <>
