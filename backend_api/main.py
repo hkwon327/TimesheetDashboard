@@ -219,7 +219,7 @@ def submit_form(form_data: FormData):
         cur.execute("UPDATE forms SET pdf_filename=%s WHERE id=%s", (filename, form_id))
         logger.info("PDF uploaded: %s (key=%s)", filename, key)
 
-        # 5) 스케줄 UPSERT - 핵심 수정 부분
+        
         if form_data.schedule:
             logger.info("Processing %d schedule items for form %s", len(form_data.schedule), form_id)
             
@@ -233,7 +233,6 @@ def submit_form(form_data: FormData):
             schedule_count = 0
             for i, item in enumerate(form_data.schedule):
                 try:
-                    # Pydantic 모델 속성에 올바르게 접근
                     day_val = item.day.strip() if item.day and item.day.strip() else None
                     time_val_raw = item.time if item.time else None
                     # 엔대시(–) → 하이픈(-) 정규화
