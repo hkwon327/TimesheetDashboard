@@ -1,42 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import { api } from "../api/client"; 
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   BarElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
 } from "chart.js";
 import "./WorkLog.css";
 import TabRegion from "./TabRegion";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale);
 
-// 시간 문자열을 시/분 단위로 변환하는 함수
+// 시간 문자열을 시/분 단위로 변환
 function parseTime(timeStr) {
   if (!timeStr) return 0;
-  const [time, meridiem] = timeStr.trim().split(' ');
-  let [hour, minute] = time.split(':').map(Number);
-  if (meridiem === 'PM' && hour !== 12) hour += 12;
-  if (meridiem === 'AM' && hour === 12) hour = 0;
-  return hour + (minute / 60);
+  const [time, meridiem] = timeStr.trim().split(" ");
+  let [hour, minute] = time.split(":").map(Number);
+  if (meridiem === "PM" && hour !== 12) hour += 12;
+  if (meridiem === "AM" && hour === 12) hour = 0;
+  return hour + minute / 60;
 }
 
 // "8:00 AM - 5:00 PM" → 9
 function getWorkHours(timeRange) {
   if (!timeRange) return 0;
-  const [start, end] = timeRange.split('-').map(s => s.trim());
+  const [start, end] = timeRange.split("-").map((s) => s.trim());
   if (!start || !end) return 0;
   const startHour = parseTime(start);
   const endHour = parseTime(end);
-  // 자정을 넘는 경우
-  if (endHour < startHour) {
-    return (endHour + 24) - startHour;
-  }
-  return endHour - startHour;
+  return endHour < startHour ? endHour + 24 - startHour : endHour - startHour;
 }
-
 
 const WorkLog = ({ selectedFormId }) => {
   const { formId: paramFormId } = useParams();
@@ -47,29 +42,33 @@ const WorkLog = ({ selectedFormId }) => {
   const [schedule, setSchedule] = useState([]);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [activeTab, setActiveTab] = useState("Tennessee");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!formId) return;
 
-    // 1. Form 데이터 로드
-    axios
-      .get(`http://52.91.22.196:8000/form/${formId}`)
+    setError("");
+    setPdfUrl(null);
+
+    // 1) Form 데이터 로드
+    api
+      .get(`/form/${formId}`)
       .then((res) => {
         setFormInfo(res.data.form);
         setSchedule(res.data.schedule);
 
-        // 2. PDF Presigned URL 요청 (pdf_filename 사용)
+        // 2) PDF Presigned URL 요청
         const filename = res.data.form?.pdf_filename;
         if (filename) {
-          axios
-            .get(`http://52.91.22.196:8000/form-pdf-url/${filename}`)
-            .then((res) => {
-              setPdfUrl(res.data.url);
-            })
-            .catch((err) => console.error("Error loading PDF URL:", err));
+          return api.get(`/form-pdf-url/${filename}`).then((r) => {
+            setPdfUrl(r.data.url);
+          });
         }
       })
-      .catch((err) => console.error("Error loading worklog:", err));
+      .catch((err) => {
+        console.error("Error loading worklog:", err);
+        setError("Failed to load work log details.");
+      });
   }, [formId]);
 
   const data = {
@@ -77,27 +76,32 @@ const WorkLog = ({ selectedFormId }) => {
     datasets: [
       {
         label: "Hours",
-        data: schedule.map(item => Math.abs(getWorkHours(item.time))),
+        data: schedule.map((item) => Math.abs(getWorkHours(item.time))),
         backgroundColor: "#B3B3B3",
         barThickness: 50,
-        borderRadius: 10
-      }
-    ]
+        borderRadius: 10,
+      },
+    ],
   };
 
-  const totalHours = schedule.reduce((sum, item) => sum + Math.abs(getWorkHours(item.time)), 0);
-  const missedDays = schedule.filter(item => Math.abs(getWorkHours(item.time)) === 0).length;
+  const totalHours = schedule.reduce(
+    (sum, item) => sum + Math.abs(getWorkHours(item.time)),
+    0
+  );
+  const missedDays = schedule.filter(
+    (item) => Math.abs(getWorkHours(item.time)) === 0
+  ).length;
 
   const options = {
     scales: {
-      y: { beginAtZero: true, max: 10 }
+      y: { beginAtZero: true, max: 10 },
     },
     plugins: {
       tooltip: { enabled: false },
-      legend: { display: false }
+      legend: { display: false },
     },
     hover: { mode: null },
-    events: [] // completely disables all mouse events (including hover)
+    events: [], // 모든 마우스 이벤트 비활성화
   };
 
   if (!formId) {
@@ -109,7 +113,7 @@ const WorkLog = ({ selectedFormId }) => {
     );
   }
 
-  if (!formInfo) {
+  if (!formInfo && !error) {
     return (
       <div className="worklog-container">
         <h3>Detailed Work Hours</h3>
@@ -127,21 +131,27 @@ const WorkLog = ({ selectedFormId }) => {
         <div className="left-section">
           <div className="work-details">
             <h3>Detailed Work Hours</h3>
-            <div className="header-row">
-              <span>{formInfo.employee_name}</span>
-              <span>{formInfo.status}</span>
-            </div>
-            <table>
-              <tbody>
-                {schedule.map((item, i) => (
-                  <tr key={i}>
-                    <td>{item.day}</td>
-                    <td>{item.time}</td>
-                    <td>{item.location}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {error ? (
+              <p className="error-text">{error}</p>
+            ) : (
+              <>
+                <div className="header-row">
+                  <span>{formInfo?.employee_name}</span>
+                  <span>{formInfo?.status}</span>
+                </div>
+                <table>
+                  <tbody>
+                    {schedule.map((item, i) => (
+                      <tr key={i}>
+                        <td>{item.day}</td>
+                        <td>{item.time}</td>
+                        <td>{item.location}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
           </div>
 
           <div className="summary-section">
@@ -152,8 +162,8 @@ const WorkLog = ({ selectedFormId }) => {
               </div>
               <div className="summary-text">
                 <p>
-                  <strong>Total Hours:</strong> {totalHours} hrs &nbsp;  &nbsp;
-                  <strong>Missed Day:</strong> {missedDays} days &nbsp;  &nbsp; 
+                  <strong>Total Hours:</strong> {totalHours} hrs &nbsp;&nbsp;
+                  <strong>Missed Day:</strong> {missedDays} days
                 </p>
               </div>
             </div>
