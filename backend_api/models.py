@@ -24,7 +24,7 @@ class ScheduleItem(BaseModel):
     location: Optional[str] = None
 
 class ServiceWeek(BaseModel):
-    start: Optional[str] = None      # "MM/DD/YYYY"
+    start: Optional[str] = None     
     end: Optional[str] = None
 
 # ------------------------------
@@ -45,7 +45,7 @@ def convert_date_format(date_str: Optional[str]) -> Optional[str]:
     if not date_str or not isinstance(date_str, str) or not date_str.strip():
         return None
 
-    # MM/DD → MM/DD/YYYY 변환
+    #  MM/DD/YYYY
     if len(date_str.split("/")) == 2:
         current_year = datetime.now().year
         date_str = f"{date_str}/{current_year}"

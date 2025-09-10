@@ -118,7 +118,7 @@ def calculate_hours_from_range(time_range: Optional[str]) -> float:
     try:
         if not time_range or " - " not in str(time_range).replace("–", "-"):
             return 0.0
-        # 엔대시 → 하이픈 정규화
+        # 하이픈 정규화
         norm = str(time_range).replace("–", "-")
         start_s, end_s = norm.split(" - ")
         start = datetime.strptime(start_s.strip(), "%I:%M %p")
@@ -204,7 +204,7 @@ def submit_form(form_data: FormData):
             _none_if_empty(form_data.signature) or "",
             bool(form_data.isSubmit),
             _none_if_empty(form_data.status),
-            None  # pdf_filename은 아래에서 업데이트
+            None  
         ))
         form_id = cur.fetchone()[0]
         logger.info("Form created with ID: %s", form_id)
@@ -235,7 +235,7 @@ def submit_form(form_data: FormData):
                 try:
                     day_val = item.day.strip() if item.day and item.day.strip() else None
                     time_val_raw = item.time if item.time else None
-                    # 엔대시(–) → 하이픈(-) 정규화
+                    # 하이픈(-) 정규화
                     time_val = time_val_raw.replace("–", "-").strip() if time_val_raw and time_val_raw.strip() else None
                     location_val = item.location.strip() if item.location and item.location.strip() else None
 
