@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./Dashboard.css";
 import TabRegion from "./TabRegion";
 import { api } from "../api/client";
+import { REGIONS, STATUSES } from "../constants";
 
 const PAGE_SIZE = 10;
 
@@ -10,16 +11,44 @@ const Dashboard = () => {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const [activeRegion, setActiveRegion] = useState("Tennessee");
-  const [activeStatus, setActiveStatus] = useState("pending");
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
+  // URL 파라미터에서 지역/상태 읽기
+  const { region: routeRegion, status: routeStatus } = useParams();
+  const activeRegion = REGIONS.includes((routeRegion || "").toLowerCase())
+    ? (routeRegion || "").toLowerCase()
+    : "kentucky";
+  const activeStatus = STATUSES.includes((routeStatus || "").toLowerCase())
+    ? (routeStatus || "").toLowerCase()
+    : "pending";
+
+  // URL 교정 가드: 잘못된 값으로 들어오면 정상 경로로 교정
+  useEffect(() => {
+    const badRegion = !REGIONS.includes((routeRegion || "").toLowerCase());
+    const badStatus = !STATUSES.includes((routeStatus || "").toLowerCase());
+    if (badRegion || badStatus) {
+      navigate(`/dashboard/${activeRegion}/${activeStatus}`, { replace: true });
+    }
+  }, [routeRegion, routeStatus, activeRegion, activeStatus, navigate]);
+
+  // URL 선택값을 localStorage에 동기화 (직접 진입해도 최신 저장)
+  useEffect(() => {
+    if (REGIONS.includes(activeRegion)) {
+      localStorage.setItem("app_region", activeRegion);
+    }
+    if (STATUSES.includes(activeStatus)) {
+      localStorage.setItem("app_status", activeStatus);
+    }
+  }, [activeRegion, activeStatus]);
+
+  // 지역 판별 유틸
   const hasKySk = (schedule = []) =>
     Array.isArray(schedule) &&
     schedule.some((item) => (item?.location || "") === "KY SK Trailer");
 
+  // 폼 로드 + 지역 태깅(소문자)
   useEffect(() => {
     let canceled = false;
 
@@ -34,10 +63,10 @@ const Dashboard = () => {
             try {
               const d = await api.get(`/form/${f.id}`);
               const schedule = d?.data?.schedule || [];
-              const region = hasKySk(schedule) ? "Kentucky" : "Tennessee";
+              const region = hasKySk(schedule) ? "kentucky" : "tennessee";
               return { ...f, _region: region };
             } catch {
-              return { ...f, _region: "Tennessee" };
+              return { ...f, _region: "tennessee" };
             }
           })
         );
@@ -56,33 +85,49 @@ const Dashboard = () => {
     };
 
     fetchAndTagRegion();
-    return () => { canceled = true; };
+    return () => {
+      canceled = true;
+    };
   }, []);
 
-  useEffect(() => { setPage(1); }, [activeRegion, activeStatus]);
+  // 지역/상태 변경 시 페이지/선택 초기화
+  useEffect(() => {
+    setPage(1);
+    setSelectedIds(new Set());
+  }, [activeRegion, activeStatus]);
 
+  // 지역 필터
   const regionFiltered = useMemo(() => {
-    if (activeRegion === "Tennessee") return forms.filter((f) => f._region === "Tennessee");
-    if (activeRegion === "Kentucky")  return forms.filter((f) => f._region === "Kentucky");
+    if (activeRegion === "tennessee")
+      return forms.filter((f) => f._region === "tennessee");
+    if (activeRegion === "kentucky")
+      return forms.filter((f) => f._region === "kentucky");
     return forms;
   }, [forms, activeRegion]);
 
-  const counts = useMemo(() => ({
-    pending:   regionFiltered.filter((f) => f.status === "pending").length,
-    approved:  regionFiltered.filter((f) => f.status === "approved").length,
-    confirmed: regionFiltered.filter((f) => f.status === "confirmed").length,
-  }), [regionFiltered]);
+  // 상태별 카운트
+  const counts = useMemo(
+    () => ({
+      pending: regionFiltered.filter((f) => f.status === "pending").length,
+      approved: regionFiltered.filter((f) => f.status === "approved").length,
+      confirmed: regionFiltered.filter((f) => f.status === "confirmed").length,
+    }),
+    [regionFiltered]
+  );
 
+  // 현재 탭(상태) 필터
   const filtered = useMemo(
     () => regionFiltered.filter((f) => f.status === activeStatus),
     [regionFiltered, activeStatus]
   );
 
+  // 페이지네이션
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const clampedPage = Math.min(page, totalPages);
   const startIdx = (clampedPage - 1) * PAGE_SIZE;
   const currentPageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
 
+  // 날짜 포맷
   const fmtMD = (val) => {
     if (!val) return "";
     if (typeof val === "string" && val.length >= 10) {
@@ -97,11 +142,13 @@ const Dashboard = () => {
     return `${mm}/${dd}`;
   };
 
+  // 워크로그 상세로
   const handleRowClick = (formId) => {
     localStorage.setItem("lastFormId", String(formId));
     navigate(`/worklog/${formId}`);
   };
 
+  // 선택 토글
   const toggleOne = (formId) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -122,6 +169,7 @@ const Dashboard = () => {
     });
   };
 
+  // 상태 일괄 변경
   const updateStatus = async (ids, newStatus) => {
     try {
       await Promise.all(
@@ -143,34 +191,52 @@ const Dashboard = () => {
 
   const hasSelection = selectedIdsInTab.length > 0;
 
+  // 지역/상태 전환 시: URL 동기화 + localStorage 저장
+  const onRegionChange = (r) => {
+    const region = (r || "").toLowerCase();
+    if (!REGIONS.includes(region)) return;
+    localStorage.setItem("app_region", region);
+    navigate(`/dashboard/${region}/${activeStatus}`);
+  };
+
+  const onStatusChange = (s) => {
+    const status = (s || "").toLowerCase();
+    if (!STATUSES.includes(status)) return;
+    localStorage.setItem("app_status", status);
+    navigate(`/dashboard/${activeRegion}/${status}`);
+  };
+
   if (loading) return <div className="dashboard">Loading...</div>;
   if (err) return <div className="dashboard error">{err}</div>;
 
   return (
     <div className="dashboard">
-      <TabRegion activeRegion={activeRegion} onRegionChange={setActiveRegion} />
+      {/* 지역 탭 */}
+      <TabRegion activeRegion={activeRegion} onRegionChange={onRegionChange} />
 
+      {/* 상태 카드 */}
       <div className="status-cards">
         <div
           className={`card pending ${activeStatus === "pending" ? "active" : ""}`}
-          onClick={() => setActiveStatus("pending")}
+          onClick={() => onStatusChange("pending")}
         >
           Pending {counts.pending}
         </div>
         <div
           className={`card approved ${activeStatus === "approved" ? "active" : ""}`}
-          onClick={() => setActiveStatus("approved")}
+          onClick={() => onStatusChange("approved")}
         >
           Approved {counts.approved}
         </div>
         <div
           className={`card confirmed ${activeStatus === "confirmed" ? "active" : ""}`}
-          onClick={() => setActiveStatus("confirmed")}
+          onClick={() => onStatusChange("confirmed")}
         >
           Confirmed {counts.confirmed}
         </div>
       </div>
 
+      {/* 테이블 */}
       <div className="table-section">
         <div className="table-header">
           <span>{activeStatus[0].toUpperCase() + activeStatus.slice(1)}</span>
@@ -233,6 +299,7 @@ const Dashboard = () => {
           </tbody>
         </table>
 
+        {/* 페이지네이션 */}
         <div className="pagination">
           <button disabled={clampedPage === 1} onClick={() => setPage(clampedPage - 1)}>
             {"<"}
@@ -255,6 +322,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* 액션 버튼 */}
       <div className="action-buttons">
         {activeStatus === "pending" && (
           <>

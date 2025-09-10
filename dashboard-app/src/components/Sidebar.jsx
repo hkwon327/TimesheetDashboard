@@ -17,6 +17,9 @@ const Sidebar = ({ activeMenu, onMenuClick }) => {
             key={menu}
             className={activeMenu === menu ? "active" : ""}
             onClick={() => onMenuClick(menu)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onMenuClick(menu)}
           >
             {menu}
           </li>
