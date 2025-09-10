@@ -1,7 +1,6 @@
-import base64
-import io
 import os
-
+import io
+import base64
 import boto3
 from fastapi import HTTPException
 from PyPDF2 import PdfReader, PdfWriter
@@ -9,52 +8,33 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-
-from datetime import datetime
-from typing import Union
-
-
-from .models import FormData, PdfFormData
-
-
-# 전역 S3 클라이언트 인스턴스 (한 번만 생성)
-_s3_client = boto3.client('s3')
-
-
+# ---- S3 client ----
+_s3_client = boto3.client("s3")
 def get_s3_client():
-    """
-    전역 S3 클라이언트를 반환합니다.
-    테스트/모킹 또는 여러 모듈에서 재사용 가능하게 함.
-    """
     return _s3_client
 
-
-TEMPLATE_PDF = "/app/backend_api/templates/Form.pdf"
+# ---- Template path (환경변수 없이 상대경로 고정) ----
+HERE = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_PDF = os.path.join(HERE, "templates", "Form.pdf")
 
 def _has_text(v) -> bool:
     return isinstance(v, str) and v.strip() != ""
 
 def build_filled_pdf(form_data) -> bytes:
-    """
-    고정 템플릿 PDF(TEMPLATE_PDF)에 form_data를 채워서 바이트로 반환.
-    - 빈 값은 출력하지 않음
-    - serviceWeek: start/end 중 하나라도 있으면 'start ~ end'
-    - schedule: time/location 중 하나라도 있을 때만 해당 행 출력
-    """
     if not os.path.exists(TEMPLATE_PDF):
-        raise HTTPException(status_code=404, detail="Template PDF not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Template PDF not found at {TEMPLATE_PDF}"
+        )
 
-    # 템플릿 읽기
     template_pdf = PdfReader(TEMPLATE_PDF)
 
-    # 오버레이 캔버스 준비
     packet = io.BytesIO()
     can = canvas.Canvas(packet, pagesize=letter)
     can.setFont("Helvetica", 10)
 
     # ===== 상단 필드 =====
     y_top = 710
-
     if _has_text(getattr(form_data, "requestDate", "")):
         can.drawString(440, y_top, form_data.requestDate)
     if _has_text(getattr(form_data, "requestorName", "")):
@@ -62,14 +42,17 @@ def build_filled_pdf(form_data) -> bytes:
     if _has_text(getattr(form_data, "employeeName", "")):
         can.drawString(215, y_top - 135, form_data.employeeName)
 
-    # 첫 스케줄 위치(옵션)
+    # ===== 스케줄 =====
     schedule = getattr(form_data, "schedule", None) or []
     if schedule:
-        first_loc = getattr(schedule[0], "location", None) if hasattr(schedule[0], "location") else (schedule[0].get("location") if isinstance(schedule[0], dict) else None)
+        first_loc = (
+            getattr(schedule[0], "location", None)
+            if hasattr(schedule[0], "location")
+            else (schedule[0].get("location") if isinstance(schedule[0], dict) else None)
+        )
         if _has_text(first_loc):
             can.drawString(215, y_top - 170, first_loc)
 
-    # 서비스 주간
     service_week = getattr(form_data, "serviceWeek", {}) or {}
     if isinstance(service_week, dict):
         sw_start = (service_week.get("start") or "").strip()
@@ -79,7 +62,6 @@ def build_filled_pdf(form_data) -> bytes:
     if sw_start or sw_end:
         can.drawString(210, y_top - 210, f"{sw_start} ~ {sw_end}")
 
-    # ===== 스케줄 표 =====
     y = y_top - 270
     for item in schedule:
         if isinstance(item, dict):
@@ -100,7 +82,7 @@ def build_filled_pdf(form_data) -> bytes:
                 can.drawString(400, y, loc)
             y -= 30
 
-    # ===== 하단 고정 영역 =====
+    # ===== 하단 =====
     EMP_SIGN_NAME_X, EMP_SIGN_NAME_Y = 330, 230
     SIGN_IMG_X, SIGN_IMG_Y = 280, 165
     REQUESTOR_NAME_X, REQUESTOR_NAME_Y = 430, 190
@@ -121,7 +103,6 @@ def build_filled_pdf(form_data) -> bytes:
     if _has_text(getattr(form_data, "requestorName", "")):
         can.drawString(REQUESTOR_NAME_X, REQUESTOR_NAME_Y, form_data.requestorName)
 
-    # 캔버스 종료 및 병합
     can.save()
     packet.seek(0)
 
