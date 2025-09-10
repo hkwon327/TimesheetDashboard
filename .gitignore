@@ -10,3 +10,5 @@ build/
 
 # Additional sensitive files you might want to ignore
 .env.local
+*.pyc
+__pycache__/
