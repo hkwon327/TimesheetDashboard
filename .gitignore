@@ -1,22 +1,25 @@
-# Node (any folder)
+# Node
+node_modules/
 **/node_modules/
-**/build/
+build/
+dist/
 
 # Python
 venv/
 __pycache__/
 *.pyc
 
-# OS / editor
+# OS / Editor
 .DS_Store
 .idea/
 .vscode/
 
 # Env
 .env
+.env*
 
+# Lambda layer (will be updated)
 lambda-layer/
-submission-app/.env.development
-submission-app/.env.production
-dashboard-app/.env.development
-dashboard-app/.env.production
+
+# Logs
+*.log
