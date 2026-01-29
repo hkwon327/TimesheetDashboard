@@ -1,28 +1,24 @@
-# 📊 Timesheet Submission & Dashboard App
+# 📊 Timesheet Submission & Dashboard Portal
 
 An internal web application for employees to submit their weekly work hours and for managers to review, approve, and track them.  
 Finalized forms are **stored in AWS RDS** (structured data) and archived as **PDFs in AWS S3**.
 
 ---
 
-## ✨ Features
+## Features
 
-- 📝 **Submission App**: Employees enter weekly timesheets
-- 📊 **Dashboard App**: Managers review & approve submissions
-- 📂 **Storage**:  
+- **Timesheet App**: Employees enter weekly timesheets
+- **Dashboard App**: Managers review & approve submissions
+- **Storage**:  
   - PDF → AWS S3  
   - Structured data → PostgreSQL (RDS)
-- ☁️ **Cloud Infra**: AWS S3, EC2, RDS, CloudFront, Route53, ACM
-- 🔒 **Secure by default**: HTTPS via ACM, ALB routing
-
+- **Cloud Infra**: AWS S3, Lambda, API Gateway CloudFront, Route53, ACM, RDS
 ---
 
-## 🔧 Tech Stack
+## Tech Stack
 
 **Frontend**
-- React.js (CRA)  
-- React Router v6  
-- Tailwind + Custom CSS  
+- React.js (CRA) with CSS
 
 **Backend**
 - FastAPI (Python 3.9+)  
@@ -34,9 +30,8 @@ Finalized forms are **stored in AWS RDS** (structured data) and archived as **PD
 
 **Cloud / Infra**
 - AWS S3 (static hosting & PDFs)  
-- AWS EC2 (backend API)  
+- AWS Lambda + API Gateway
 - AWS CloudFront (CDN)  
 - AWS Route53 + ACM (HTTPS)  
-- Docker (containerization)  
 
 
