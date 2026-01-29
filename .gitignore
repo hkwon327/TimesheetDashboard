@@ -1,18 +1,18 @@
+# Node (any folder)
+**/node_modules/
+**/build/
 
-# Common files to ignore
-node_modules/
-build/
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# OS / editor
 .DS_Store
+.idea/
+.vscode/
+
+# Env
 .env
 
-# Ignore .pem files
-*.pem
-
-# Additional sensitive files you might want to ignore
-.env.local
-*.pyc
-__pycache__/
-# Python venv
-venv/
-.venv/
-venv/
+lambda-layer/
