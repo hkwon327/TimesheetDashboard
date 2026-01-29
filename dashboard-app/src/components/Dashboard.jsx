@@ -1,11 +1,31 @@
+// /src/components/Dashboard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Dashboard.css";
-import TabRegion from "./TabRegion";
 import { api } from "../api/client";
 import { REGIONS, STATUSES } from "../constants";
 
 const PAGE_SIZE = 10;
+
+const normalizeStatus = (s) => {
+  const v = String(s || "").trim().toLowerCase();
+  if (v === "approved") return "approved";
+  if (v === "confirmed") return "confirmed";
+  if (v === "pending") return "pending";
+  return "pending";
+};
+
+const prettyStatus = (s) => {
+  const v = String(s || "").toLowerCase();
+  if (v === "pending") return "Pending";
+  if (v === "approved") return "Approved";
+  if (v === "confirmed") return "Confirmed";
+  if (v === "processing") return "Processing";
+  if (v === "completed") return "Completed";
+  if (v === "failed") return "Failed";
+  if (v === "deleted") return "Deleted";
+  return s ? String(s) : "-";
+};
 
 const Dashboard = () => {
   const [forms, setForms] = useState([]);
@@ -13,18 +33,21 @@ const Dashboard = () => {
   const [err, setErr] = useState("");
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [page, setPage] = useState(1);
-  const navigate = useNavigate();
 
-  // URL 파라미터에서 지역/상태 읽기
+  const navigate = useNavigate();
   const { region: routeRegion, status: routeStatus } = useParams();
+
   const activeRegion = REGIONS.includes((routeRegion || "").toLowerCase())
     ? (routeRegion || "").toLowerCase()
     : "kentucky";
+
   const activeStatus = STATUSES.includes((routeStatus || "").toLowerCase())
     ? (routeStatus || "").toLowerCase()
     : "pending";
 
-  // URL 교정 가드: 잘못된 값으로 들어오면 정상 경로로 교정
+  const isAllTab = activeStatus === "all";
+
+  // URL 교정 가드
   useEffect(() => {
     const badRegion = !REGIONS.includes((routeRegion || "").toLowerCase());
     const badStatus = !STATUSES.includes((routeStatus || "").toLowerCase());
@@ -33,14 +56,10 @@ const Dashboard = () => {
     }
   }, [routeRegion, routeStatus, activeRegion, activeStatus, navigate]);
 
-  // URL 선택값을 localStorage에 동기화 (직접 진입해도 최신 저장)
+  // localStorage 동기화
   useEffect(() => {
-    if (REGIONS.includes(activeRegion)) {
-      localStorage.setItem("app_region", activeRegion);
-    }
-    if (STATUSES.includes(activeStatus)) {
-      localStorage.setItem("app_status", activeStatus);
-    }
+    if (REGIONS.includes(activeRegion)) localStorage.setItem("app_region", activeRegion);
+    if (STATUSES.includes(activeStatus)) localStorage.setItem("app_status", activeStatus);
   }, [activeRegion, activeStatus]);
 
   // 지역 판별 유틸
@@ -48,25 +67,27 @@ const Dashboard = () => {
     Array.isArray(schedule) &&
     schedule.some((item) => (item?.location || "") === "KY SK Trailer");
 
-  // 폼 로드 + 지역 태깅(소문자)
+  // 로드
   useEffect(() => {
     let canceled = false;
 
     const fetchAndTagRegion = async () => {
       setLoading(true);
+      setErr("");
+
       try {
-        const res = await api.get("/forms");
-        const list = Array.isArray(res.data?.forms) ? res.data.forms : [];
+        const res = await api.get("/submission");
+        const list = Array.isArray(res.data?.items) ? res.data.items : [];
 
         const withRegion = await Promise.all(
           list.map(async (f) => {
             try {
-              const d = await api.get(`/form/${f.id}`);
+              const d = await api.get(`/submission/${f.id}`);
               const schedule = d?.data?.schedule || [];
               const region = hasKySk(schedule) ? "kentucky" : "tennessee";
-              return { ...f, _region: region };
+              return { ...f, status: normalizeStatus(f.status), _region: region };
             } catch {
-              return { ...f, _region: "tennessee" };
+              return { ...f, status: normalizeStatus(f.status), _region: "tennessee" };
             }
           })
         );
@@ -78,7 +99,7 @@ const Dashboard = () => {
       } catch (e) {
         console.error(e);
         if (!canceled) {
-          setErr("Failed to load forms");
+          setErr("Failed to load submissions");
           setLoading(false);
         }
       }
@@ -90,7 +111,7 @@ const Dashboard = () => {
     };
   }, []);
 
-  // 지역/상태 변경 시 페이지/선택 초기화
+  // region/status 바뀌면 초기화
   useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
@@ -98,28 +119,39 @@ const Dashboard = () => {
 
   // 지역 필터
   const regionFiltered = useMemo(() => {
-    if (activeRegion === "tennessee")
-      return forms.filter((f) => f._region === "tennessee");
-    if (activeRegion === "kentucky")
-      return forms.filter((f) => f._region === "kentucky");
+    if (activeRegion === "tennessee") return forms.filter((f) => f._region === "tennessee");
+    if (activeRegion === "kentucky") return forms.filter((f) => f._region === "kentucky");
     return forms;
   }, [forms, activeRegion]);
 
-  // 상태별 카운트
+  // 카운트
   const counts = useMemo(
     () => ({
       pending: regionFiltered.filter((f) => f.status === "pending").length,
       approved: regionFiltered.filter((f) => f.status === "approved").length,
-      confirmed: regionFiltered.filter((f) => f.status === "confirmed").length,
+      all: regionFiltered.length,
     }),
     [regionFiltered]
   );
 
-  // 현재 탭(상태) 필터
-  const filtered = useMemo(
-    () => regionFiltered.filter((f) => f.status === activeStatus),
-    [regionFiltered, activeStatus]
+  // 탭 필터
+  const filtered = useMemo(() => {
+    if (isAllTab) return regionFiltered;
+    return regionFiltered.filter((f) => f.status === activeStatus);
+  }, [regionFiltered, activeStatus, isAllTab]);
+
+  // 선택/전체선택 계산
+  const filteredIds = useMemo(() => filtered.map((f) => f.id), [filtered]);
+
+  const allSelectedInTab =
+    filteredIds.length > 0 && filteredIds.every((id) => selectedIds.has(id));
+
+  const selectedIdsInTab = useMemo(
+    () => filteredIds.filter((id) => selectedIds.has(id)),
+    [filteredIds, selectedIds]
   );
+
+  const hasSelection = selectedIdsInTab.length > 0;
 
   // 페이지네이션
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -142,7 +174,15 @@ const Dashboard = () => {
     return `${mm}/${dd}`;
   };
 
-  // 워크로그 상세로
+  // total_hours 포맷
+  const fmtHours = (v) => {
+    if (v === null || v === undefined || v === "" || v === "-") return "—";
+    const n = Number(v);
+    if (Number.isFinite(n)) return n.toFixed(2);
+    return String(v);
+  };
+
+  // 상세 이동
   const handleRowClick = (formId) => {
     localStorage.setItem("lastFormId", String(formId));
     navigate(`/worklog/${formId}`);
@@ -157,152 +197,276 @@ const Dashboard = () => {
     });
   };
 
-  const allSelectedInTab =
-    filtered.length > 0 && filtered.every((f) => selectedIds.has(f.id));
-
   const toggleAllInTab = (checked) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (checked) filtered.forEach((f) => next.add(f.id));
-      else filtered.forEach((f) => next.delete(f.id));
+      if (checked) filteredIds.forEach((id) => next.add(id));
+      else filteredIds.forEach((id) => next.delete(id));
       return next;
     });
   };
 
-  // 상태 일괄 변경
+  // 상태 변경
   const updateStatus = async (ids, newStatus) => {
     try {
       await Promise.all(
-        ids.map((id) => api.put(`/form/${id}/status`, { new_status: newStatus }))
+        ids.map((id) => api.put(`/submission/${id}/status`, { new_status: newStatus }))
       );
-      setForms((prev) =>
-        prev.map((f) => (ids.includes(f.id) ? { ...f, status: newStatus } : f))
-      );
+
+      if (newStatus === "deleted") {
+        setForms((prev) => prev.filter((f) => !ids.includes(f.id)));
+      } else {
+        setForms((prev) =>
+          prev.map((f) => (ids.includes(f.id) ? { ...f, status: newStatus } : f))
+        );
+      }
+
       setSelectedIds(new Set());
-    } catch (err) {
-      console.error("Status update failed:", err);
+    } catch (e) {
+      console.error("Status update failed:", e);
     }
   };
 
-  const selectedIdsInTab = useMemo(() => {
-    const ids = new Set(selectedIds);
-    return filtered.filter((f) => ids.has(f.id)).map((f) => f.id);
-  }, [filtered, selectedIds]);
-
-  const hasSelection = selectedIdsInTab.length > 0;
-
-  // 지역/상태 전환 시: URL 동기화 + localStorage 저장
-  const onRegionChange = (r) => {
-    const region = (r || "").toLowerCase();
-    if (!REGIONS.includes(region)) return;
-    localStorage.setItem("app_region", region);
-    navigate(`/dashboard/${region}/${activeStatus}`);
+  // region/status 변경
+  const onRegionChange = (region) => {
+    const r = (region || "").toLowerCase();
+    if (!REGIONS.includes(r)) return;
+    localStorage.setItem("app_region", r);
+    navigate(`/dashboard/${r}/${activeStatus}`);
   };
 
-  const onStatusChange = (s) => {
-    const status = (s || "").toLowerCase();
-    if (!STATUSES.includes(status)) return;
-    localStorage.setItem("app_status", status);
-    navigate(`/dashboard/${activeRegion}/${status}`);
+  const onStatusChange = (status) => {
+    const s = (status || "").toLowerCase();
+    if (!STATUSES.includes(s)) return;
+    localStorage.setItem("app_status", s);
+    navigate(`/dashboard/${activeRegion}/${s}`);
   };
 
-  if (loading) return <div className="dashboard">Loading...</div>;
-  if (err) return <div className="dashboard error">{err}</div>;
-
-  return (
-    <div className="dashboard">
-      {/* 지역 탭 */}
-      <TabRegion activeRegion={activeRegion} onRegionChange={onRegionChange} />
-
-      {/* 상태 카드 */}
-      <div className="status-cards">
-        <div
-          className={`card pending ${activeStatus === "pending" ? "active" : ""}`}
-          onClick={() => onStatusChange("pending")}
-        >
-          Pending {counts.pending}
-        </div>
-        <div
-          className={`card approved ${activeStatus === "approved" ? "active" : ""}`}
-          onClick={() => onStatusChange("approved")}
-        >
-          Approved {counts.approved}
-        </div>
-        <div
-          className={`card confirmed ${activeStatus === "confirmed" ? "active" : ""}`}
-          onClick={() => onStatusChange("confirmed")}
-        >
-          Confirmed {counts.confirmed}
+  // -------------------------
+  // UI
+  // -------------------------
+  if (loading) {
+    return (
+      <div className="mgr">
+        <div className="mgr-card mgr-skeleton">
+          <div className="sk-line w40" />
+          <div className="sk-line w25" />
+          <div className="sk-grid">
+            <div className="sk-block" />
+            <div className="sk-block" />
+            <div className="sk-block" />
+          </div>
+          <div className="sk-table" />
         </div>
       </div>
+    );
+  }
 
-      {/* 테이블 */}
-      <div className="table-section">
-        <div className="table-header">
-          <span>{activeStatus[0].toUpperCase() + activeStatus.slice(1)}</span>
-          <div className="table-header-left" onClick={(e) => e.stopPropagation()}>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={allSelectedInTab}
-                onChange={(e) => toggleAllInTab(e.target.checked)}
-              />
-              <span className="slider"></span>
-            </label>
-            <span className="select-all">Select All</span>
+  if (err) return <div className="mgr mgr-error">{err}</div>;
+
+  const regionCounts = {
+    tennessee: forms.filter((f) => f._region === "tennessee").length,
+    kentucky: forms.filter((f) => f._region === "kentucky").length,
+  };
+
+  const tableTitle = isAllTab
+    ? "All Submissions"
+    : `${activeStatus[0].toUpperCase() + activeStatus.slice(1)} Submissions`;
+
+  return (
+    <div className="mgr">
+      {/* Header */}
+      <div className="mgr-header">
+        <div>
+          <div className="mgr-title mgr-titleThin">Manager Dashboard</div>
+          <div className="mgr-subtitle mgr-subtitleStrong">
+            Review submissions by region and status. Select items to approve, send, or delete.
           </div>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Select</th>
-              <th>Employee Name</th>
-              <th>Requestor Name</th>
-              <th>Request Date</th>
-              <th>Service Week</th>
-              <th>Total Hours</th>
-              <th>Signature</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentPageItems.map((form) => (
-              <tr key={form.id} onClick={() => handleRowClick(form.id)}>
-                <td onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(form.id)}
-                    onChange={() => toggleOne(form.id)}
-                  />
-                </td>
-                <td>{form.employee_name || "-"}</td>
-                <td>{form.requestor_name || "-"}</td>
-                <td>{fmtMD(form.request_date)}</td>
-                <td>
-                  {fmtMD(form.service_week_start)}{" - "}{fmtMD(form.service_week_end)}
-                </td>
-                <td>
-                  {Number.isFinite(form.total_hours)
-                    ? form.total_hours.toFixed(2)
-                    : "0.00"}
-                </td>
-                <td>{form.signature ? "Signed" : "No"}</td>
-              </tr>
-            ))}
-            {currentPageItems.length === 0 && (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", color: "#888" }}>
-                  No forms in this status.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <div className="mgr-headerRight">
+          <div className="mgr-pill mgr-pillStrong">
+            <span className="mgr-pillLabel">Viewing</span>
+            <span className="mgr-pillValue">
+              {activeRegion.toUpperCase()} · {activeStatus.toUpperCase()}
+            </span>
+          </div>
+        </div>
+      </div>
 
-        {/* 페이지네이션 */}
-        <div className="pagination">
+      {/* Top row */}
+      <div className="mgr-topRow">
+        {/* Region */}
+        <div className="mgr-panel">
+          <div className="mgr-panelTitle">Region</div>
+          <div className="mgr-segment">
+            <button
+              type="button"
+              className={`seg ${activeRegion === "tennessee" ? "active" : ""}`}
+              onClick={() => onRegionChange("tennessee")}
+            >
+              Tennessee <span className="segCount">{regionCounts.tennessee}</span>
+            </button>
+            <button
+              type="button"
+              className={`seg ${activeRegion === "kentucky" ? "active" : ""}`}
+              onClick={() => onRegionChange("kentucky")}
+            >
+              Kentucky <span className="segCount">{regionCounts.kentucky}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="mgr-panel">
+          <div className="mgr-panelTitle">Status</div>
+          <div className="mgr-statusGrid">
+            <button
+              type="button"
+              className={`statCard warn ${activeStatus === "pending" ? "active" : ""}`}
+              onClick={() => onStatusChange("pending")}
+            >
+              <div className="statTop">
+                <span>Pending</span>
+                <span className="statDot" />
+              </div>
+              <div className="statValue">{counts.pending}</div>
+            </button>
+
+            <button
+              type="button"
+              className={`statCard ok ${activeStatus === "approved" ? "active" : ""}`}
+              onClick={() => onStatusChange("approved")}
+            >
+              <div className="statTop">
+                <span>Approved</span>
+                <span className="statDot" />
+              </div>
+              <div className="statValue">{counts.approved}</div>
+            </button>
+
+            <button
+              type="button"
+              className={`statCard info ${isAllTab ? "active" : ""}`}
+              onClick={() => onStatusChange("all")}
+            >
+              <div className="statTop">
+                <span>All</span>
+                <span className="statDot" />
+              </div>
+              <div className="statValue">{counts.all}</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Table card */}
+      <div className="mgr-tableCard">
+        <div className="mgr-tableHeader mgr-tableHeaderTight">
+          {/* 1줄: 왼쪽 타이틀 / 오른쪽 Select all + Clear */}
+          <div className="mgr-tableHeaderTop">
+            <div className="mgr-tableHeaderLeft">
+              <div className="mgr-tableTitle">
+                {tableTitle}
+                <span className="mgr-tableCount">{filtered.length}</span>
+              </div>
+            </div>
+
+            <div className="mgr-controlsRow">
+              <label className="mgr-selectAllInline mgr-checkboxRight">
+                Select all
+                <input
+                  type="checkbox"
+                  checked={allSelectedInTab}
+                  onChange={(e) => toggleAllInTab(e.target.checked)}
+                />
+              </label>
+
+              <button
+                type="button"
+                className="mgr-linkBtn"
+                disabled={selectedIdsInTab.length === 0}
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          {/* 2줄: 왼쪽 hint / 오른쪽 Selected */}
+          <div className="mgr-tableHeaderRow2">
+            <div className="mgr-tableHint mgr-tableHintBelow">Click a row to open details</div>
+
+            {/* ✅ hint와 같은 톤/크기로 맞춤 */}
+            <div className="mgr-tableHint mgr-selectedRight">
+              Selected <span className="mgr-selectedCount">{selectedIdsInTab.length}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mgr-tableWrap">
+          <table className="mgr-table">
+            <thead>
+              <tr>
+                <th className="mgr-colCheck" />
+                <th className="mgr-colEmployee">Employee</th>
+                <th className="mgr-colRequestor">Requestor</th>
+
+                {/* ✅ Total Hours만 오른쪽 */}
+                <th className="mgr-colHours">Total Hours</th>
+
+                {isAllTab && <th className="mgr-colStatus">Status</th>}
+
+                {/* ✅ 날짜/기간은 가운데 */}
+                <th className="mgr-colReqDate">Request Date</th>
+                <th className="mgr-colServiceWeek">Service Week</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {currentPageItems.map((form) => (
+                <tr key={form.id} onClick={() => handleRowClick(form.id)}>
+                  <td className="mgr-tdCheck" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      className="mgr-checkbox"
+                      type="checkbox"
+                      checked={selectedIds.has(form.id)}
+                      onChange={() => toggleOne(form.id)}
+                    />
+                  </td>
+
+                  {/* ✅ 왼쪽 정렬 */}
+                  <td className="cell-strong mgr-tdText">{form.employee_name || "-"}</td>
+                  <td className="mgr-tdText">{form.requestor_name || "-"}</td>
+
+                  {/* ✅ 숫자만 오른쪽 */}
+                  <td className="mgr-tdNum">{fmtHours(form.total_hours)}</td>
+
+                  {isAllTab && <td className="cell-status">{prettyStatus(form.status)}</td>}
+
+                  {/* ✅ 가운데 정렬 */}
+                  <td className="cell-mono mgr-tdDate">{fmtMD(form.request_date)}</td>
+                  <td className="cell-mono mgr-tdDate">
+                    {fmtMD(form.service_week_start)} – {fmtMD(form.service_week_end)}
+                  </td>
+                </tr>
+              ))}
+
+              {currentPageItems.length === 0 && (
+                <tr>
+                  <td colSpan={isAllTab ? 7 : 6} className="mgr-empty">
+                    No submissions in this status.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="mgr-pagination">
           <button disabled={clampedPage === 1} onClick={() => setPage(clampedPage - 1)}>
-            {"<"}
+            ‹
           </button>
           {Array.from({ length: totalPages }, (_, i) => (
             <button
@@ -317,50 +481,61 @@ const Dashboard = () => {
             disabled={clampedPage === totalPages}
             onClick={() => setPage(clampedPage + 1)}
           >
-            {">"}
+            ›
           </button>
         </div>
-      </div>
 
-      {/* 액션 버튼 */}
-      <div className="action-buttons">
-        {activeStatus === "pending" && (
-          <>
-            <button
-              className="approve"
-              disabled={!hasSelection}
-              onClick={() => updateStatus(selectedIdsInTab, "approved")}
-            >
-              Approve
-            </button>
-            <button
-              className="delete"
-              disabled={!hasSelection}
-              onClick={() => updateStatus(selectedIdsInTab, "deleted")}
-            >
-              Delete
-            </button>
-          </>
-        )}
+        {/* Bottom actions */}
+        <div className="mgr-bottomBar mgr-bottomBarCenter">
+          {activeStatus === "pending" && (
+            <>
+              <button
+                className="btn primary big"
+                disabled={!hasSelection}
+                onClick={() => updateStatus(selectedIdsInTab, "approved")}
+              >
+                Approve
+              </button>
+              <button
+                className="btn danger big"
+                disabled={!hasSelection}
+                onClick={() => updateStatus(selectedIdsInTab, "deleted")}
+              >
+                Delete
+              </button>
+            </>
+          )}
 
-        {activeStatus === "approved" && (
-          <>
-            <button
-              className="send"
-              disabled={!hasSelection}
-              onClick={() => updateStatus(selectedIdsInTab, "confirmed")}
-            >
-              Send
-            </button>
-            <button
-              className="delete"
-              disabled={!hasSelection}
-              onClick={() => updateStatus(selectedIdsInTab, "deleted")}
-            >
-              Delete
-            </button>
-          </>
-        )}
+          {activeStatus === "approved" && (
+            <>
+              <button
+                className="btn primary big"
+                disabled={!hasSelection}
+                onClick={() => updateStatus(selectedIdsInTab, "confirmed")}
+              >
+                Send
+              </button>
+              <button
+                className="btn danger big"
+                disabled={!hasSelection}
+                onClick={() => updateStatus(selectedIdsInTab, "deleted")}
+              >
+                Delete
+              </button>
+            </>
+          )}
+
+          {activeStatus === "all" && (
+            <>
+              <button className="btn primary big" disabled={!hasSelection}>
+                Approve
+              </button>
+              <button className="btn danger big" disabled={!hasSelection}>
+                Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

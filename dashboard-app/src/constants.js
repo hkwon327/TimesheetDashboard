@@ -1,2 +1,2 @@
 export const REGIONS = ['kentucky', 'tennessee'];
-export const STATUSES = ['pending', 'approved', 'confirmed'];
+export const STATUSES = ['pending', 'approved', 'all'];

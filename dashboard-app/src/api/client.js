@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // CRA는 REACT_APP_* 만 주입됩니다.
-const BASE = process.env.REACT_APP_API_BASE_URL || "https://api.blueoilsk.com";
+const BASE = process.env.REACT_APP_API_BASE_URL;
 
 export const api = axios.create({
   baseURL: BASE,

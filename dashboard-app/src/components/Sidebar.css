@@ -1,52 +1,150 @@
-.logo-row {
+/* Sidebar.css */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  padding: 18px 16px;
+  background: #fbfcff;
+  border-right: 1px solid rgba(15, 23, 42, 0.06);
+
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.logo-img {
-  width: 44px;
-  height: 44px;
+/* ✅ 로고: 반드시 가로 정렬 고정 */
+.sb-logoCard {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 12px;
+  border-radius: 16px;
+
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.sb-logoBadge {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+
+  display: grid;
+  place-items: center;
+
+  background: #fbfcff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  flex: 0 0 auto;
+}
+
+.sb-logoImg {
+  width: 50px;
+  height: 50px;
   object-fit: contain;
 }
 
-.logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111;
-  margin: 5px 0 0 0;
-  padding: 0.5rem 0;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin: 20px 0 0px 0;
+.sb-logoText {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 3px;
+  min-width: 0; /* 텍스트 오버플로 안전 */
 }
 
-.sidebar li {
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-md);
+.sb-brand {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+
+  /* ✅ “공백 문자” 대신 letter-spacing으로만 간격 */
+  letter-spacing: 0.28em;
+  white-space: nowrap;     /* ✅ 절대 줄바꿈 금지 */
+  overflow: hidden;
+  text-overflow: ellipsis; /* 혹시 좁아도 깨지지 않게 */
+}
+
+.sb-sub {
+  font-size: 13px;
+  color: #7a8699;
+  white-space: nowrap;
+}
+
+/* 메뉴 */
+.sb-menu {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ✅ 메뉴 카드 제거(테두리 없음) */
+.sb-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: 12px;
+
+  background: transparent;
+  border: none;
+
+  color: #7a8699;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--text-secondary);
-  font-weight: 500;
+
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.sidebar li:hover {
-  background-color: var(--background-color);
-  color: var(--primary-color);
+.sb-item:hover {
+  background: rgba(59, 130, 246, 0.08);
+  color: #0f172a;
 }
 
-.sidebar li.active {
-  background-color: var(--primary-color);
-  color: white;
+.sb-item.is-active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #0f172a;
+  position: relative;
 }
 
-.sidebar li.active:hover {
-  background-color: var(--primary-hover);
+.sb-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 999px;
+  background: #3b82f6;
 }
-  
+
+/* 아이콘 정렬 깨짐 방지 */
+.sb-ico {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  flex: 0 0 auto;
+}
+
+.sb-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(122, 134, 153, 0.55);
+  flex: 0 0 auto;
+  transform: translateY(1px);
+}
+
+.sb-dot.is-active {
+  background: #3b82f6;
+}
+
+.sb-label {
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+}

@@ -1,4 +1,10 @@
-/*완벽한 반응형 스타일 파일 - 가운데 정렬 및 패딩 통일*/
+/* ================================
+   WorkHoursForm.css (CLEAN + UPGRADED)
+   - floating label 제거 → 위 라벨 형태
+   - DatePicker popper 강제 위치 제거
+   - react-select portal/z-index 안정화
+   - schedule grid 정렬/간격 통일
+================================ */
 
 /* -------------------------------
    PAGE & FORM CONTAINER STYLES
@@ -19,7 +25,8 @@ body {
   margin: 2rem auto;
   padding: 0;
   background: white;
-  border-radius: 0px;
+  border-radius: 18px;          /* ✅ 업그레이드 */
+  overflow: hidden;             /* ✅ 카드 느낌 */
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
 }
@@ -33,9 +40,9 @@ body {
 form {
   background: #eff4eb;
   width: 100%;
-  margin: 1rem 0;
+  margin: 1rem 0 0;
   padding: 2.5rem;
-  border-radius: 55px 55px 0 0;
+  border-radius: 28px 28px 0 0; /* ✅ 업그레이드 */
   box-shadow: 0 2px 15px rgba(0, 31, 2, 0.08);
   box-sizing: border-box;
 }
@@ -44,13 +51,13 @@ form {
    TYPOGRAPHY
 --------------------------------*/
 
-h1, 
+h1,
 .form-subtitle,
 .logo-text {
   text-align: center;
   color: #262626;
   margin-bottom: 0.2rem;
-  font-family: 'Quicksand', sans-serif;
+  font-family: "Quicksand", sans-serif;
   font-size: 2rem;
   font-weight: 600;
   line-height: 1.5;
@@ -93,7 +100,7 @@ h1,
 }
 
 .logo-text {
-  font-family: 'Quicksand', sans-serif;
+  font-family: "Quicksand", sans-serif;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -103,37 +110,53 @@ h1,
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* -------------------------------
    INPUT GROUPS & FORM ELEMENTS
 --------------------------------*/
 
+/* input-group: 기존 flex 정렬 때문에 UI가 흔들릴 수 있어 block으로 통일 */
 .input-group {
-  position: relative;
-  margin: 30px auto;
-  padding: 0;
+  display: block;
   width: 100%;
-  max-width: 700px; /* 좌우 공간을 더 늘리기 위해 너비 축소 */
+  max-width: 700px;
+  margin: 18px auto;
   box-sizing: border-box;
-  display: flex;
-  justify-content: center;
 }
 
 .first-input {
   margin-top: 25px;
+}
+
+/* ✅ 기존 floating label 숨김 (이제 위 라벨 형태 사용) */
+.user-label {
+  display: none !important;
+}
+
+/* ✅ 위 라벨 + 에러 텍스트를 예쁘게 붙이는 wrapper */
+.field-stack {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2b2b2b;
+  padding-left: 10px;
+  opacity: 0.85;
 }
 
 /* Base input styling */
@@ -143,142 +166,192 @@ input[type="date"],
 select,
 .custom-time-input,
 .react-datepicker-wrapper input {
-    width: 100%;
-    max-width: 700px; /* 좌우 공간을 더 늘리기 위해 너비 축소 */
-    height: 48px;
-    padding: 0.5rem;
-    padding-left: 1.5rem; /* 텍스트 시작점을 더 오른쪽으로 */
-    border: 1.5px solid #00d676;
-    border-radius: 1rem;
-    box-sizing: border-box;
-    background-color: #ffffff;
-    font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif;
-    font-size: 16px; /* iOS 줌 방지 */
-    outline: none;
-    margin: 0 auto;
-    display: block;
-    transition: all 0.3s ease;
+  width: 100%;
+  max-width: 700px;
+  height: 48px;
+  padding: 0.5rem;
+  padding-left: 14px;
+  border: 1.5px solid rgba(0, 214, 118, 0.45);
+  border-radius: 14px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif;
+  font-size: 16px;
+  outline: none;
+  margin: 0 auto;
+  display: block;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
 }
 
-/* 통일된 Focus 효과 - 모든 입력 필드에 연두색 외곽선 적용 */
+/* Focus: scale 제거 + 고급스러운 링 */
 .input:focus,
 input[type="text"]:focus,
 input[type="date"]:focus,
 select:focus,
 .custom-time-input:focus,
 .react-datepicker-wrapper input:focus {
-    border-color: #00b85e !important;
-    border-width: 2px !important;
-    box-shadow: 0 0 0 3px rgba(0, 214, 118, 0.2) !important;
-    transform: scale(1.02) !important;
+  transform: none !important;
+  border-color: rgba(0, 184, 94, 0.9) !important;
+  box-shadow: 0 0 0 4px rgba(0, 214, 118, 0.18) !important;
 }
 
-/* Placeholder styling */
-input::placeholder,
-select::placeholder,
-.custom-time-input::placeholder {
-    color: #918e8e;
-    font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif;
-    font-size: 14px;
-    opacity: 1;
-    transition: opacity 0.6s ease;
-}
-
-input:focus::placeholder {
-    opacity: 0;
-    transition: opacity 0.6s ease;
-}
-
-/* Label styling */
-.user-label {
-    position: absolute;
-    left: 15%; /* 텍스트 시작점에 맞춰 라벨 위치 조정 */
-    top: 0;
-    transform: translate(-50%, -50%) scale(1);
-    background-color: #ffffff;
-    padding: 0.2em;
-    color: #00d676;
-    pointer-events: none;
-    font-size: 0.9rem;
-    z-index: 2;
-    transition: color 0.3s ease;
-}
-
-/* Label color change on focus */
-.input:focus + .user-label,
-input[type="text"]:focus + .user-label,
-input[type="date"]:focus + .user-label,
-select:focus + .user-label,
-.custom-time-input:focus + .user-label {
-    color: #00b85e;
-}
-
-/* DatePicker specific styling */
-.react-datepicker-wrapper {
-    width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
-    position: relative;
-}
-
-.react-datepicker__input-container {
-    width: 100%;
-    position: relative;
-}
-
-.react-datepicker__input-container input {
-    border: 1.5px solid #00d676 !important;
-    border-radius: 1rem !important;
-    background: white !important;
-    padding: 0.5rem !important;
-    padding-left: 1.5rem !important; /* DatePicker도 동일한 텍스트 시작점 */
-    font-size: 16px !important;
-    width: 100% !important;
-    max-width: 700px !important;
-    height: 48px !important;
-    outline: none !important;
-    margin: 0 auto !important;
-    display: block !important;
-    box-sizing: border-box !important;
-    transition: all 0.3s ease !important;
-}
-
-/* DatePicker focus - 통일된 스타일 적용 */
-.react-datepicker__input-container input:focus {
-    border-color: #00b85e !important;
-    border-width: 2px !important;
-    box-shadow: 0 0 0 3px rgba(0, 214, 118, 0.2) !important;
-    transform: scale(1.02) !important;
-}
-
-/* Hover effects - 통일된 스타일 */
+/* Hover */
 .input:hover,
 input[type="text"]:hover,
 input[type="date"]:hover,
 select:hover,
 .custom-time-input:hover,
 .react-datepicker-wrapper input:hover {
-    border-color: #00b85e !important;
-    cursor: pointer;
+  border-color: rgba(0, 184, 94, 0.85) !important;
+  cursor: pointer;
 }
 
-/* Active state - 통일된 클릭 피드백 */
-.input:active,
-input[type="text"]:active,
-input[type="date"]:active,
-select:active,
-.custom-time-input:active,
-.react-datepicker-wrapper input:active {
-    transform: scale(0.98) !important;
+/* Placeholder styling */
+input::placeholder,
+select::placeholder,
+.custom-time-input::placeholder {
+  color: #918e8e;
+  font-size: 14px;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+input:focus::placeholder {
+  opacity: 0;
 }
 
 /* -------------------------------
-   RESPONSIVE SCHEDULE GRID
+   ERROR UI
+--------------------------------*/
+
+.error-text {
+  margin: 0 !important;
+  padding-left: 10px;
+  font-size: 12px;
+  color: #d11a2a;
+  line-height: 1.25;
+}
+
+.has-error .input,
+.has-error input[type="text"],
+.has-error input[type="date"],
+.has-error select,
+.has-error .custom-time-input,
+.has-error .react-datepicker-wrapper input {
+  border-color: rgba(209, 26, 42, 0.65) !important;
+  box-shadow: 0 0 0 4px rgba(209, 26, 42, 0.10) !important;
+}
+
+/* -------------------------------
+   DatePicker styling (LOOK)
+--------------------------------*/
+
+.react-datepicker-wrapper {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.react-datepicker__input-container {
+  width: 100%;
+}
+
+.react-datepicker {
+  border: 2px solid #00d676 !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14) !important;
+  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif !important;
+  border-radius: 14px !important;
+  background-color: white !important;
+  transform: scale(0.92) !important;         /* 너무 작으면 0.95~1로 */
+  transform-origin: top left !important;
+  padding: 10px !important;
+}
+
+.react-datepicker__header {
+  background-color: white !important;
+  border-bottom: 1px solid #eee !important;
+  padding: 12px 12px 8px 12px !important;
+  margin-bottom: 10px !important;
+}
+
+.react-datepicker__current-month {
+  font-size: 1rem !important;
+  color: #333 !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+
+.react-datepicker__navigation {
+  top: 12px !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #333 !important;
+  border-width: 2px 2px 0 0 !important;
+}
+
+.react-datepicker__day-name {
+  color: #666 !important;
+  font-weight: 700 !important;
+  width: 1.8rem !important;
+  margin: 0.15rem !important;
+  font-size: 0.8rem !important;
+  text-align: center !important;
+}
+
+.react-datepicker__day {
+  width: 1.8rem !important;
+  height: 1.8rem !important;
+  line-height: 1.8rem !important;
+  margin: 0.15rem !important;
+  border-radius: 50% !important;
+  color: #333 !important;
+  background-color: transparent !important;
+  font-size: 0.85rem !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: rgba(0, 214, 118, 0.10) !important;
+}
+
+.react-datepicker__day--selected {
+  background-color: #00d676 !important;
+  color: white !important;
+}
+
+.react-datepicker__day--today {
+  font-weight: 800 !important;
+  color: #00d676 !important;
+  background-color: transparent !important;
+}
+
+.react-datepicker__triangle {
+  display: none !important;
+}
+
+/* ✅ 핵심: popper 위치를 강제로 박는 기존 코드 제거/무력화 */
+.react-datepicker-popper,
+.react-datepicker-wrapper .react-datepicker-popper,
+body .react-datepicker-popper,
+html .react-datepicker-popper,
+div[class*="react-datepicker-popper"] {
+  z-index: 99999 !important;
+  position: absolute !important;
+  top: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  right: auto !important;
+  transform: none !important;
+}
+
+/* -------------------------------
+   SCHEDULE GRID
 --------------------------------*/
 
 .schedule-grid {
   margin: 3rem auto;
-  max-width: 700px; /* 좌우 공간을 더 늘리기 위해 너비 축소 */
+  max-width: 700px;
   width: 100%;
   box-sizing: border-box;
   padding: 0;
@@ -288,64 +361,72 @@ select:active,
   display: grid;
   grid-template-columns: minmax(120px, 1fr) 2fr 2fr;
   gap: 1rem;
-  padding: 0.5rem 0;
-  background-color: #f8f9fa;
+  padding: 0.75rem 0;
+  background-color: rgba(255, 255, 255, 0.55);
   margin-bottom: 0.5rem;
-  border-radius: 0px;
+  border-radius: 12px;
 }
 
 .grid-header span {
   text-align: left;
-  font-weight: 500;
+  font-weight: 700;
   padding-left: 1rem;
+  color: #2b2b2b;
 }
 
 .grid-row {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) 2fr 2fr;
   gap: 1rem;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .day-label {
-  font-weight: 500;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding-left: 1rem;
+  color: #1f1f1f;
 }
 
 .day-date {
-  font-weight: normal;
-  color: #666;
-  font-size: 0.8em;
+  font-weight: 600;
+  color: #6b6b6b;
+  font-size: 0.82em;
 }
 
-/* Select and custom input in grid */
-.grid-row select,
+/* ✅ react-select / custom-time input wrapper */
+.grid-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+/* custom-time input */
 .grid-row .custom-time-input {
-  height: 38px;
-  width: 90%;
-  padding: 0.4rem 0.6rem;
-  font-size: 13px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-sizing: border-box;
-  background-color: #ffffff;
-  margin: 5px auto;
-  transition: all 0.3s ease;
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
 }
 
-/* Grid 내부 요소들도 동일한 focus 효과 적용 */
-.grid-row select:focus,
-.grid-row .custom-time-input:focus {
-  border-color: #00b85e !important;
-  border-width: 2px !important;
-  box-shadow: 0 0 0 3px rgba(0, 214, 118, 0.2) !important;
-  transform: scale(1.02) !important;
-  outline: none !important;
+/* -------------------------------
+   react-select (Schedule dropdowns)
+--------------------------------*/
+
+/* portal이 body로 나가므로 z-index 강제 */
+.react-select__menu-portal {
+  z-index: 999999 !important;
+}
+
+/* react-select 폰트 통일 */
+.react-select__control,
+.react-select__menu {
+  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif !important;
 }
 
 /* -------------------------------
@@ -354,17 +435,35 @@ select:active,
 
 .signature-section {
   margin: 2.5rem auto;
-  max-width: 700px; /* 좌우 공간을 더 늘리기 위해 너비 축소 */
+  max-width: 700px;
   width: 100%;
   box-sizing: border-box;
   padding: 0;
 }
 
+.signature-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.signature-title {
+  font-weight: 800;
+  color: #222;
+}
+
+.signature-hint {
+  font-size: 12px;
+  color: #666;
+}
+
 .signature-container {
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
   padding: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 12px;
   width: 100%;
   background-color: #ffffff;
   box-sizing: border-box;
@@ -372,7 +471,7 @@ select:active,
 
 .signature-pad {
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 12px;
   width: 100%;
   height: 300px;
   background-color: #ffffff;
@@ -393,50 +492,49 @@ select:active,
   display: flex;
   gap: 1rem;
   justify-content: flex-start;
-  flex-direction: row-reverse; /* Save 버튼이 왼쪽, Clear 버튼이 오른쪽으로 위치 변경 */
+  flex-direction: row-reverse;
 }
 
 .signature-button {
-  padding: 5px 10px;
+  padding: 8px 12px;
   font-size: 14px;
-  border-radius: 4px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 10px;
-  min-height: 4px; /* 터치 친화적 */
+  min-height: 36px;
 }
 
 .clear-button {
   background-color: transparent;
-  border: 0px solid #33ac49;
+  border: 1px solid rgba(0, 214, 118, 0.35);
   color: #33ac49;
 }
 
 .clear-button:hover {
   background-color: #e7f5e4;
-  border: .5px solid #d1ffc6;
+  border-color: rgba(0, 214, 118, 0.55);
 }
 
 .save-button {
   background-color: #ffffff;
-  border: 0px solid #000000;
+  border: 1px solid rgba(0, 0, 0, 0.10);
   color: #000000;
 }
 
 .save-button:hover {
-  background-color: #c4c3c3;
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 /* -------------------------------
-   FORM BUTTONS - 애니메이션 효과 적용
+   FORM BUTTONS
 --------------------------------*/
 
 .form-buttons {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin: 0.1rem auto;
-  max-width: 700px; /* 좌우 공간을 더 늘리기 위해 너비 축소 */
+  margin: 0.6rem auto 0;
+  max-width: 700px;
   width: 100%;
   box-sizing: border-box;
   padding: 0;
@@ -445,230 +543,49 @@ select:active,
 .form-buttons button {
   padding: 12px 150px;
   font-size: 16px;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
   min-width: 120px;
-  min-height: 44px; /* 터치 친화적 */
-  transition: all 0.2s ease;
+  min-height: 44px;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
-/* 깔끔한 Preview 버튼 */
+/* Preview 버튼 */
 .preview-button {
   font-family: Arial, Helvetica, sans-serif;
   font-weight: bold;
   color: #000000;
-  background-color: #ffffff;   /* Submit 버튼과 톤 맞춤 */
-  padding: 1em 2em;
-  border: 2px solid #9ad1a0;   
-  border-radius: .6rem;
-  cursor: pointer;
-  min-width: 120px;
-  min-height: 44px; /* 터치 친화적 */
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  background-color: #ffffff;
+  border: 1.5px solid rgba(154, 209, 160, 0.95);
+  border-radius: 12px;
 }
 
-/* Hover 효과 */
 .preview-button:hover {
-  background-color: #d8f8e1;  /* 산뜻한 밝은 민트 */
-  border-color: #9ad1a0;      /* 테두리도 민트 계열로 */
-  color: #000000;
+  background-color: #d8f8e1;
+  border-color: rgba(154, 209, 160, 0.95);
+  transform: translateY(-1px);
 }
 
-
-
-/* 애니메이션 효과가 있는 Submit 버튼 */
+/* Submit 버튼 */
 .submit-button {
   font-family: Arial, Helvetica, sans-serif;
   font-weight: bold;
   color: #000000;
-  background-color: #ffffff;   /* Submit 버튼과 톤 맞춤 */
-  padding: 1em 2em;
-  border: 2px solid #9ad1a0;   
-  border-radius: .6rem;
-  cursor: pointer;
-  min-width: 120px;
-  min-height: 44px; /* 터치 친화적 */
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  background-color: #ffffff;
+  border: 1.5px solid rgba(154, 209, 160, 0.95);
+  border-radius: 12px;
 }
 
-/* Hover 효과 */
 .submit-button:hover {
-  background-color: #d8f8e1;  /* 산뜻한 밝은 민트 */
-  border-color: #9ad1a0;      /* 테두리도 민트 계열로 */
-  color: #000000;
+  background-color: #d8f8e1;
+  border-color: rgba(154, 209, 160, 0.95);
+  transform: translateY(-1px);
 }
 
-/* Submit 버튼 텍스트는 상대적 위치 */
 .submit-button .text {
   position: relative;
   z-index: 10;
-}
-
-
-/* -------------------------------
-   DATEPICKER CUSTOMIZATION
---------------------------------*/
-
-.react-datepicker {
-  border: 2px solid #00d676 !important; /* 연두색 테두리 */
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important; /* 그림자 강화 */
-  font-family: "Futura PT", "Futura", "Futura-Medium", sans-serif !important;
-  border-radius: 12px !important; /* 모서리를 더 둥글게 */
-  background-color: white !important;
-  transform: scale(0.85) !important;
-  transform-origin: center !important;
-  padding: 10px !important; /* 내부 패딩 */
-}
-
-.react-datepicker__header {
-  background-color: white !important;
-  border-bottom: 1px solid #eee !important; /* 헤더 하단에 얇은 테두리 */
-  padding: 12px 12px 8px 12px !important; /* 패딩 조정 */
-  margin-bottom: 15px !important; /* 달과 요일 사이 간격 추가 */
-}
-
-.react-datepicker__current-month {
-  font-size: 1rem !important; /* 폰트 크기 줄임 */
-  color: #333 !important;
-  font-weight: 600 !important;
-  margin-bottom: 10px !important; /* 달 제목 아래 여백 추가 */
-}
-
-.react-datepicker__navigation {
-  top: 12px !important; /* 네비게이션 위치 조정 */
-}
-
-.react-datepicker__navigation-icon::before {
-  border-color: #333 !important;
-  border-width: 2px 2px 0 0 !important;
-}
-
-/* 요일 헤더 간격 조정 */
-.react-datepicker__day-names-header {
-  margin-top: 10px !important; /* 요일 위쪽 여백 */
-  margin-bottom: 8px !important; /* 요일 아래쪽 여백 */
-}
-
-/* 요일 헤더 간격 조정 */
-.react-datepicker__day-names-header {
-  margin-top: 15px !important; /* 요일 위쪽 여백 더 증가 */
-  margin-bottom: 10px !important; /* 요일 아래쪽 여백 */
-}
-
-.react-datepicker__navigation {
-  top: 12px !important; /* 네비게이션 위치 조정 */
-}
-
-.react-datepicker__navigation-icon::before {
-  border-color: #333 !important;
-  border-width: 2px 2px 0 0 !important;
-}
-
-.react-datepicker__day-name {
-  color: #666 !important;
-  font-weight: 600 !important;
-  width: 1.8rem !important; /* 요일 크기 줄임 */
-  margin: 0.15rem !important; /* 마진도 줄임 */
-  font-size: 0.8rem !important; /* 요일 폰트 크기 줄임 */
-  text-align: center !important;
-}
-
-.react-datepicker__day {
-  width: 1.8rem !important; /* 날짜 크기 줄임 */
-  height: 1.8rem !important;
-  line-height: 1.8rem !important;
-  margin: 0.15rem !important; /* 마진 줄임 */
-  border-radius: 50% !important;
-  color: #333 !important;
-  background-color: transparent !important; /* 날짜들의 배경도 투명으로 */
-  font-size: 0.85rem !important; /* 날짜 폰트 크기 줄임 */
-}
-
-.react-datepicker__day:hover {
-  background-color: #f0f0f0 !important;
-}
-
-.react-datepicker__day--selected {
-  background-color: #00d676 !important;
-  color: white !important;
-}
-
-.react-datepicker__day--today {
-  font-weight: bold !important;
-  color: #00d676 !important;
-  background-color: transparent !important; /* 오늘 날짜 배경도 투명 */
-}
-
-.react-datepicker__month {
-  margin: 0.4rem !important; /* 월 마진 줄임 */
-  background-color: white !important; /* 월 전체 배경도 흰색 */
-}
-
-.react-datepicker__triangle {
-  display: none !important;
-}
-
-/* 캘린더 컨테이너 배경도 흰색으로 */
-.react-datepicker__month-container {
-  background-color: white !important;
-  padding: 0.5rem !important; /* 컨테이너 패딩 줄임 */
-}
-
-/* 주별 행 간격 조정 */
-.react-datepicker__week {
-  margin: 0.1rem 0 !important; /* 주별 간격 줄임 */
-}
-
-/* 캘린더 위치 조정 - 더 강력한 방법들 */
-.react-datepicker-popper {
-  z-index: 9999 !important;
-  transform: none !important;
-  top: 200px !important;
-}
-
-/* 더 구체적인 선택자들 */
-.react-datepicker-wrapper .react-datepicker-popper {
-  z-index: 9999 !important;
-  transform: translateY(-50px) !important;
-}
-
-/* 전역 강제 적용 */
-body .react-datepicker-popper,
-html .react-datepicker-popper {
-  z-index: 9999 !important;
-  position: fixed !important;
-  transform: translateY(-100px) !important;
-}
-
-/* Request Date용 특별 클래스 */
-.input-group:nth-child(3) .react-datepicker-popper {
-  top: auto !important;
-  bottom: 50px !important;
-  transform: none !important;
-}
-
-/* Service Week용 특별 클래스 */
-.input-group:nth-child(4) .react-datepicker-popper {
-  top: 60px !important;
-  transform: none !important;
-}
-
-/* 최고 우선순위 CSS */
-div[class*="react-datepicker-popper"] {
-  z-index: 99999 !important;
-  position: absolute !important;
-  top: -300px !important;
-  left: 0 !important;
-  transform: none !important;
-}
-
-/* calendarContainer 스타일링 */
-.custom-calendar-container {
-  position: absolute !important;
-  z-index: 99999 !important;
-  top: -350px !important;
-  left: 0 !important;
-  width: 100% !important;
 }
 
 /* -------------------------------
@@ -676,7 +593,6 @@ div[class*="react-datepicker-popper"] {
 --------------------------------*/
 
 @media screen and (max-width: 768px) {
-  /* Layout adjustments */
   body {
     padding: 0;
     margin: 0;
@@ -694,7 +610,6 @@ div[class*="react-datepicker-popper"] {
     margin: 0;
   }
 
-  /* Typography scaling */
   h1 {
     font-size: clamp(1.5rem, 4vw, 2rem);
     margin-bottom: 0.5rem;
@@ -711,131 +626,57 @@ div[class*="react-datepicker-popper"] {
     padding: 0;
   }
 
-  /* Input groups - 모바일에서 통일된 패딩 */
   .input-group {
-    margin: 20px auto;
-    padding: 0 2rem; /* 모바일 좌우 패딩 증가 */
-    max-width: calc(100% - 4rem); /* 패딩을 고려한 최대 너비 */
+    margin: 16px auto;
+    padding: 0 1.25rem;
+    max-width: calc(100% - 2.5rem);
   }
 
-  /* Labels positioning */
-  .user-label {
-    left: 58%; /* 모바일에서 텍스트 시작점에 맞춰 라벨 위치 조정 */
-    transform: translate(-50%, -50%);
-    font-size: 14px;
-  }
-
-  /* All inputs full width */
-  input[type="text"],
-  input[type="date"],
-  select,
-  .react-datepicker-wrapper input,
-  .custom-time-input {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 auto !important;
-    font-size: 16px !important; /* iOS 줌 방지 */
-    height: 48px !important;
-    box-sizing: border-box !important;
-    padding-left: 1.5rem !important; /* 모바일에서도 동일한 텍스트 시작점 */
-  }
-
-  .react-datepicker-wrapper {
-    max-width: 100% !important;
-  }
-
-  /* Schedule grid - mobile stack layout */
   .schedule-grid {
     margin: 1.5rem auto;
-    max-width: calc(100% - 4rem); /* 패딩을 고려한 최대 너비 */
-    width: calc(100% - 4rem);
-    padding: 0 2rem; /* 모바일 좌우 패딩 증가 */
+    max-width: calc(100% - 2.5rem);
+    width: calc(100% - 2.5rem);
+    padding: 0 1.25rem;
   }
 
   .grid-header {
-    display: none; /* Hide header on mobile */
+    display: none;
   }
 
   .grid-row {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-    border: 1px solid #eee;
-    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
     padding: 1rem;
     margin-bottom: 1rem;
-    background-color: #fafafa;
+    background-color: rgba(255,255,255,0.55);
   }
 
   .day-label {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
     padding-left: 0;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
   }
 
-  .grid-row select,
-  .grid-row .custom-time-input {
-    width: 100%;
-    height: 44px;
-    font-size: 16px; /* iOS 줌 방지 */
-  }
-
-  /* Add labels for mobile */
-  .grid-row select:nth-of-type(1)::before {
-    content: "Time: ";
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: #666;
-  }
-
-  .grid-row select:nth-of-type(2)::before {
-    content: "Location: ";
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: #666;
-  }
-
-  /* Signature section - 모바일에서 통일된 패딩 */
   .signature-section {
     margin: 1.5rem auto;
-    max-width: calc(100% - 4rem); /* 패딩을 고려한 최대 너비 */
-    width: calc(100% - 4rem);
-    padding: 0 2rem; /* 모바일 좌우 패딩 증가 */
-  }
-
-  .signature-container {
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    max-width: 100%;
+    max-width: calc(100% - 2.5rem);
+    width: calc(100% - 2.5rem);
+    padding: 0 1.25rem;
   }
 
   .signature-pad {
     height: 200px;
   }
 
-  .signature-buttons {
-    flex-direction: row-reverse; /* 모바일에서도 Save 왼쪽, Clear 오른쪽 유지 */
-    gap: 0.8rem;
-  }
-
-  .signature-button {
-    flex: 1; /* 모바일에서 버튼들이 균등하게 공간 차지 */
-    min-width: unset;
-    max-width: 48%; /* 두 버튼이 화면을 넘지 않도록 제한 */
-  }
-
-  /* Form buttons - 모바일에서 통일된 패딩 */
   .form-buttons {
     flex-direction: column;
     gap: 1rem;
     margin: 1.5rem auto;
-    max-width: calc(100% - 4rem); /* 패딩을 고려한 최대 너비 */
-    width: calc(100% - 4rem);
-    padding: 0 2rem; /* 모바일 좌우 패딩 증가 */
+    max-width: calc(100% - 2.5rem);
+    width: calc(100% - 2.5rem);
+    padding: 0 1.25rem;
   }
 
   .form-buttons button {
@@ -845,7 +686,6 @@ div[class*="react-datepicker-popper"] {
     font-size: 16px;
   }
 
-  /* Logo section */
   .logo-container {
     margin: 2rem 0;
     gap: 3px;
@@ -860,26 +700,8 @@ div[class*="react-datepicker-popper"] {
     letter-spacing: 1px;
   }
 
-  /* DatePicker mobile adjustments */
   .react-datepicker {
-    font-size: 0.8rem !important;
-    width: 280px !important; /* 모바일에서도 더 작게 */
-    transform: scale(0.7) !important; /* 모바일에서는 더 작게 */
-  }
-
-  .react-datepicker__day-name,
-  .react-datepicker__day {
-    width: 1.6rem !important; /* 모바일에서 더 작게 */
-    height: 1.6rem !important;
-  }
-
-  .react-datepicker__current-month {
-    font-size: 0.9rem !important; /* 모바일에서 폰트 더 작게 */
-  }
-
-  .react-datepicker-popper {
-    z-index: 9999 !important;
-    transform: none !important;
+    transform: scale(0.88) !important;
   }
 }
 
@@ -906,7 +728,6 @@ div[class*="react-datepicker-popper"] {
     height: 220px;
   }
 
-  /* 태블릿에서도 요소들 중간 정렬 및 너비 통일 */
   .input-group,
   .schedule-grid,
   .signature-section,
@@ -918,44 +739,15 @@ div[class*="react-datepicker-popper"] {
 }
 
 /* -------------------------------
-   UTILITY CLASSES
+   ACCESSIBILITY / UTIL
 --------------------------------*/
 
-.responsive-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-}
-
-.responsive-col {
-  flex: 1;
-  min-width: 0;
-}
-
-@media (max-width: 768px) {
-  .responsive-row {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .responsive-col {
-    width: 100%;
-  }
-}
-
-/* -------------------------------
-   ACCESSIBILITY IMPROVEMENTS
---------------------------------*/
-
-/* Focus states - 커스텀 focus가 있으므로 기본 outline 제거 */
 input:focus,
 select:focus,
 button:focus {
   outline: none;
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
   .input,
   input[type="text"],
@@ -964,7 +756,6 @@ button:focus {
   }
 }
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -975,7 +766,6 @@ button:focus {
   }
 }
 
-/* Print styles */
 @media print {
   .form-buttons,
   .signature-buttons {
@@ -990,4 +780,9 @@ button:focus {
   body {
     background: white;
   }
+}
+/* ✅ Day 컬럼 넓혀서 Wednesday 안 잘리게 */
+.grid-header,
+.grid-row {
+  grid-template-columns: minmax(180px, 1fr) 2fr 2fr; /* 기존 120px -> 180px */
 }
