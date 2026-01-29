@@ -16,3 +16,7 @@ __pycache__/
 .env
 
 lambda-layer/
+submission-app/.env.development
+submission-app/.env.production
+dashboard-app/.env.development
+dashboard-app/.env.production
