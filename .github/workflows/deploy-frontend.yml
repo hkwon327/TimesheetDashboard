@@ -1,0 +1,95 @@
+name: Deploy Frontends (Dashboard + Timesheet)
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  deploy-dashboard:
+    name: Deploy dashboard
+    runs-on: ubuntu-latest
+    env:
+      APP_DIR: dashboard
+      S3_BUCKET: ${{ secrets.S3_BUCKET_DASHBOARD }}
+      CF_DIST_ID: ${{ secrets.CF_DIST_ID_DASHBOARD }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
+
+      - name: Install
+        working-directory: ${{ env.APP_DIR }}
+        run: npm ci
+
+      - name: Build
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
+          REACT_APP_PREVIEW_API_BASE_URL: ${{ secrets.REACT_APP_PREVIEW_API_BASE_URL }}
+          REACT_APP_SUBMIT_API_BASE_URL: ${{ secrets.REACT_APP_SUBMIT_API_BASE_URL }}
+        run: npm run build
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Sync to S3
+        run: aws s3 sync "${{ env.APP_DIR }}/build" "s3://${{ env.S3_BUCKET }}" --delete
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "${{ env.CF_DIST_ID }}" --paths "/*"
+
+  deploy-timesheet:
+    name: Deploy timesheet
+    runs-on: ubuntu-latest
+    env:
+      APP_DIR: timesheet
+      S3_BUCKET: ${{ secrets.S3_BUCKET_TIMESHEET }}
+      CF_DIST_ID: ${{ secrets.CF_DIST_ID_TIMESHEET }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
+
+      - name: Install
+        working-directory: ${{ env.APP_DIR }}
+        run: npm ci
+
+      - name: Build
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
+          REACT_APP_PREVIEW_API_BASE_URL: ${{ secrets.REACT_APP_PREVIEW_API_BASE_URL }}
+          REACT_APP_SUBMIT_API_BASE_URL: ${{ secrets.REACT_APP_SUBMIT_API_BASE_URL }}
+        run: npm run build
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Sync to S3
+        run: aws s3 sync "${{ env.APP_DIR }}/build" "s3://${{ env.S3_BUCKET }}" --delete
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "${{ env.CF_DIST_ID }}" --paths "/*"
