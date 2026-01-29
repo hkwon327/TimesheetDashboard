@@ -1,37 +1,66 @@
-# 📊 Timesheet Submission & Dashboard Portal
+# BOSK
 
-An internal web application for employees to submit their weekly work hours and for managers to review, approve, and track them.  
-Finalized forms are **stored in AWS RDS** (structured data) and archived as **PDFs in AWS S3**.
+Web applications for submitting and managing work hours.
+
+🔗 Live  
+- Timesheet: https://timesheet.blueoilsk.com  
+- Dashboard: https://dashboard.blueoilsk.com  
+
+---
+
+## Overview
+
+This project was built as a personal project inspired by a real-world workflow observed at an industrial construction site where I worked as a part-time interpreter.
+
+Work hours were previously recorded on paper and shared manually.  
+This motivated the creation of web applications that transform the paper-based process into a digital workflow.
+
+The project consists of two applications:
+- **Timesheet App** – for submitting work hours
+- **Dashboard App** – for reviewing and managing submissions
 
 ---
 
 ## Features
 
-- **Timesheet App**: Employees enter weekly timesheets
-- **Dashboard App**: Managers review & approve submissions
-- **Storage**:  
-  - PDF → AWS S3  
-  - Structured data → PostgreSQL (RDS)
-- **Cloud Infra**: AWS S3, Lambda, API Gateway CloudFront, Route53, ACM, RDS
+### Timesheet App
+- Submit work hours
+- Preview before submission
+- Basic validation
+
+### Dashboard App
+- View submissions
+- Approve or reject entries
+- Filter by status
+
 ---
 
 ## Tech Stack
+## Tech Stack
 
 **Frontend**
-- React.js (CRA) with CSS
+- React (Create React App)
+- Axios
 
 **Backend**
-- FastAPI (Python 3.9+)  
-- Uvicorn for local dev  
-- SQLAlchemy + psycopg2  
+- AWS Lambda (Python)
+- API Gateway
+- RDS (PostgreSQL)
 
-**Database**
-- PostgreSQL (AWS RDS)
+**Infrastructure**
+- S3
+- CloudFront
+- Route53
+- ACM (TLS)
+- GitHub Actions (CI/CD)
 
-**Cloud / Infra**
-- AWS S3 (static hosting & PDFs)  
-- AWS Lambda + API Gateway
-- AWS CloudFront (CDN)  
-- AWS Route53 + ACM (HTTPS)  
+---
 
+## CI/CD
 
+On each push to the `main` branch:
+- Both frontend apps are built
+- Build files are uploaded to S3
+- CloudFront cache is invalidated automatically
+
+Authentication is handled using GitHub Actions OIDC (no static AWS access keys).
