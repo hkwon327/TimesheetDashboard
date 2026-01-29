@@ -16,7 +16,7 @@ jobs:
     name: Deploy dashboard
     runs-on: ubuntu-latest
     env:
-      APP_DIR: dashboard
+      APP_DIR: dashboard-app
       S3_BUCKET: ${{ secrets.S3_BUCKET_DASHBOARD }}
       CF_DIST_ID: ${{ secrets.CF_DIST_ID_DASHBOARD }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -57,7 +57,7 @@ jobs:
     name: Deploy timesheet
     runs-on: ubuntu-latest
     env:
-      APP_DIR: timesheet
+      APP_DIR: submission-app
       S3_BUCKET: ${{ secrets.S3_BUCKET_TIMESHEET }}
       CF_DIST_ID: ${{ secrets.CF_DIST_ID_TIMESHEET }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
