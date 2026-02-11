@@ -1,4 +1,4 @@
-# BOSK
+# Timesheet Submission & Dashboard Portal
 
 Web applications for submitting and managing work hours.
 
@@ -18,6 +18,16 @@ This motivated the creation of web applications that transform the paper-based p
 The project consists of two applications:
 - **Timesheet App** – for submitting work hours
 - **Dashboard App** – for reviewing and managing submissions
+
+---
+
+## Impact
+Transformed a fully paper-based timesheet system at an industrial construction site into an automated digital workflow, improving operational efficiency and accessibility.
+- Achieved a 90% reduction in processing time by automating submissions and eliminating manual photo reporting
+- Digitized reporting workflows, removing paper waste and reducing administrative overhead
+- Enabled remote, mobile-friendly submissions for off-site employees
+- Delivered real-time managerial visibility into workforce data through centralized dashboards
+- Streamlined tracking of hours and attendance, reducing reporting errors and delays
 
 ---
 
